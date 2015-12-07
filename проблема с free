@@ -5,8 +5,8 @@
 
 int findAndReplace(char* strIn) {
 
-	const char *search = "1234";
-	const char *newStr = "95q";
+	const char *search = "12345";
+	const char *newStr = "2";
 	char *strTemp;
 	char* strTemper;
 	int m; int x = 0;
@@ -36,11 +36,15 @@ int findAndReplace(char* strIn) {
 	}
 
 	t = lenIn + x*m + 1;
-
+	if(lenIn>t){
+		t= lenIn;
+	}
 	strTemp = malloc(sizeof(char)*t);
 	strTemper = malloc(sizeof(char)*t);
 	memset(strTemper, 0, t);
 	memset(strTemp, 0, t);
+
+	
 	for (i = 0; i < lenIn; i++)
 		strTemper[i] = strIn[i];
 	i = 0;
@@ -61,9 +65,10 @@ int findAndReplace(char* strIn) {
 		i++;
 	}
 	
-	strTemper[t-1] = '\0';
-	printf("NEW String: %s\n", strTemper);
+	strTemper[t+x*m] = '\0';
+
 	free(strTemp);
+	printf("NEW String: %s\n", strTemper);
 	free(strTemper);
 
 	return 0;
