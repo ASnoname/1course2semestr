@@ -406,6 +406,7 @@ int main(){
 		strIn = findAndReplace(strIn,search[i],newStr[i]);  
 		printf("NEW String: %s\n", strIn);    
 	}	          
+		free(strIn);      
 
 //	puts("\nTest2 - Capitalization");      
 //	Capitalization();                      
