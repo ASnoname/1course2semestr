@@ -3,10 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-int findAndReplace(char* strIn) {
+int findAndReplace(char* strIn, char *search, char *newStr) {
 
-	const char *search = "12345";
-	const char *newStr = "2";
 	char *strTemp;
 	char* strTemper;
 	int m; int x = 0;
@@ -68,12 +66,12 @@ int findAndReplace(char* strIn) {
 	strTemper[t+x*m] = '\0';
 
 	free(strTemp);
-	printf("NEW String: %s\n", strTemper);
-	free(strTemper);
 
-	return 0;
+	//free(strTemper);
+
+	return strTemper;
 }
-
+/*
 int isSmall(char ch) {
 	if ((ch >= 97 && ch <= 122) || (ch >= 224 && ch <= 255)) 
 		return 1;
@@ -390,29 +388,38 @@ void fromTranslit(char* str) {
 		}
 	}
 	free(str);
-}
+} */
 
 int main(){
-	char *str = "Shchirokaya";
-	char *string = "In this string ,perhaps,many spaces.";
-	char *strIn = "Price is 12345 12345 12345 dollars";
+//	char *str = "Shchirokaya";
+//	char *string = "In this string ,perhaps,many spaces.";
+	char *strIn = "hi, peace!";
+	int i; char *search[2]; char *newStr[2];
+	search[0] = "hi";
+	search[1] = "peace";
+	newStr[0] = "bye";
+	newStr[1] = "war";
 
-	puts("Test1 - find and replace");
-	findAndReplace(strIn);                    
+//	puts("Test1 - find and replace");
 
-	puts("\nTest2 - Capitalization");      
-	Capitalization();                      
+	for ( i = 0; i < 2; i++){
+		strIn = findAndReplace(strIn,search[i],newStr[i]);  
+		printf("NEW String: %s\n", strIn);    
+	}	          
 
-	puts("\nTest3 - Space corection");     
-	Spacing(string);						   
+//	puts("\nTest2 - Capitalization");      
+//	Capitalization();                      
 
-	puts("\nTest4.1 - to Translit");       
-	toTranslit();                          
+//	puts("\nTest3 - Space corection");     
+//	Spacing(string);						   
 
-	puts("\nTest4.2 - from Translit");     
-	fromTranslit(str);                        
+//	puts("\nTest4.1 - to Translit");       
+//	toTranslit();                          
+
+//	puts("\nTest4.2 - from Translit");     
+//	fromTranslit(str);                        
  
-	puts("\nPress any key to exit");
+//	puts("\nPress any key to exit");
 	getch();
 	return 0;
 }
