@@ -402,11 +402,10 @@ int main(){
 
 //	puts("Test1 - find and replace");
 
-	for ( i = 0; i < 2; i++){
-		strIn = findAndReplace(strIn,search[i],newStr[i]);  
-		printf("NEW String: %s\n", strIn);    
-	}	          
-		free(strIn);      
+	for ( i = 0; i < 2; i++)
+		strIn = findAndReplace(strIn,search[i],newStr[i]);   
+	printf("NEW String: %s\n", strIn);     
+	free(strIn);      
 
 //	puts("\nTest2 - Capitalization");      
 //	Capitalization();                      
