@@ -5,6 +5,9 @@
 
 int findAndReplace(char* strIn, char *search, char *newStr) {
 
+	if (strIn == NULL)
+		return 0;
+
 	char *strTemp;
 	char* strTemper;
 	int m; int x = 0;
@@ -34,9 +37,9 @@ int findAndReplace(char* strIn, char *search, char *newStr) {
 	}
 
 	t = lenIn + x*m + 1;
-	if(lenIn>t){
-		t= lenIn;
-	}
+	if(lenIn>t)
+		t = lenIn;
+	
 	strTemp = malloc(sizeof(char)*t);
 	strTemper = malloc(sizeof(char)*t);
 	memset(strTemper, 0, t);
@@ -45,7 +48,11 @@ int findAndReplace(char* strIn, char *search, char *newStr) {
 	
 	for (i = 0; i < lenIn; i++)
 		strTemper[i] = strIn[i];
-	i = 0;
+
+	//free(strIn);
+
+	i = 0; 
+
 	while (strTemper[i] != '\0') {
 		if (strTemper[i] == search[0]) {
 			for (j = 1; j < lenSearch; j++) {
