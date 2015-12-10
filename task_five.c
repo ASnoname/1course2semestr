@@ -3,26 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-int findAndReplace(char* strIn, char *search, char *newStr) {
+int mmm(int lenNewStr, int lenSearch){
+	int m = lenNewStr - lenSearch;
+	return m;
+}
+ int xxx(char *strIn, char *search, int lenIn, int lenSearch){
+ 	int i,j; int x = 0;
 
-	if (strIn == NULL)
-		return 0;
-
-	char *strTemp;
-	char* strTemper;
-	int m; int x = 0;
-
-	int lenIn = strlen(strIn);
-	int lenSearch = strlen(search);
-	int lenNewStr = strlen(newStr);
-	int i = 0, j = 0, t;
-
-	printf("String in: %s\n", strIn);
-	printf("String for search: %s\n", search);
-	printf("String for replace: %s\n", newStr);
-
-	m = lenNewStr - lenSearch;
-	for (i = 0; i < lenIn; i++)
+ 	for (i = 0; i < lenIn; i++)
 	{
 		if (strIn[i] == search[0]) {
 			for (j = 1; j < lenSearch; j++) {
@@ -36,22 +24,55 @@ int findAndReplace(char* strIn, char *search, char *newStr) {
 		}
 	}
 
-	t = lenIn + x*m + 1;
+	return x;
+ }
+
+int count(char* strIn, char *search, char *newStr){
+	int m; int x = 0;
+
+	int lenIn = strlen(strIn);
+	int lenSearch = strlen(search);
+	int lenNewStr = strlen(newStr);
+	int i = 0, j = 0, t;
+
+	m = mmm(lenNewStr,lenSearch);
+	x = xxx(strIn,search,lenIn,lenSearch);
+
+	t = x*m;
+	
+	return t;
+}
+
+int findAndReplace(char* strIn, char *search, char *newStr, int t) {
+
+printf("dd");
+	if (strIn == NULL)
+		return 0;
+
+	int i = 0, j = 0; int x; int m;
+	int lenIn = strlen(strIn);
+	int lenSearch = strlen(search);
+	int lenNewStr = strlen(newStr);
+
+	m = mmm(lenNewStr,lenSearch);
+	x = xxx(strIn,search,lenIn,lenSearch);
+
+	printf("String in: %s\n", strIn);
+	printf("String for search: %s\n", search);
+	printf("String for replace: %s\n", newStr);
+
 	if(lenIn>t)
 		t = lenIn;
-	
-	strTemp = malloc(sizeof(char)*t);
-	strTemper = malloc(sizeof(char)*t);
+
+	char *strTemp = malloc(sizeof(char)*t);
+	char *strTemper = malloc(sizeof(char)*t);
 	memset(strTemper, 0, t);
 	memset(strTemp, 0, t);
-
 	
 	for (i = 0; i < lenIn; i++)
 		strTemper[i] = strIn[i];
 
-	//free(strIn);
-
-	i = 0; 
+	i = 0;
 
 	while (strTemper[i] != '\0') {
 		if (strTemper[i] == search[0]) {
@@ -73,8 +94,6 @@ int findAndReplace(char* strIn, char *search, char *newStr) {
 	strTemper[t+x*m] = '\0';
 
 	free(strTemp);
-
-	//free(strTemper);
 
 	return strTemper;
 }
@@ -406,13 +425,30 @@ int main(){
 	search[1] = "peace";
 	newStr[0] = "bye";
 	newStr[1] = "war";
+	int t2; int t = 0; int k; int lenIn = strlen(strIn);
+
+	for (k = 0; k < 2; k++)
+	{
+		t2 = count(strIn,search[k],newStr[k]);
+		t += t2;
+	}
+	t += lenIn + 1;
+
+	char *perem = malloc(sizeof(char)*t);
+	char *perem2 = malloc(sizeof(char)*t);
 
 //	puts("Test1 - find and replace");
 
-	for ( i = 0; i < 2; i++)
-		strIn = findAndReplace(strIn,search[i],newStr[i]);   
-	printf("NEW String: %s\n", strIn);     
-	free(strIn);      
+	perem = findAndReplace(strIn,search[0],newStr[0],t);  
+
+	for ( i = 1; i < 2; i++){
+		perem2 = findAndReplace(perem,search[i],newStr[i],t);  
+		free(perem);
+		perem = perem2;
+	}	
+
+	printf("NEW String: %s\n", perem);     
+	free(perem);      
 
 //	puts("\nTest2 - Capitalization");      
 //	Capitalization();                      
