@@ -102,7 +102,7 @@ int main(int argc,char* argv[]){
 
 	char* light;
 
-	if(argc > 2 || argc < 2){
+	if(argc != 2){
 		printf("ERROR 1");
 		return 0;
 	}
@@ -155,30 +155,46 @@ int main(int argc,char* argv[]){
 		return 0;
 	}	
 	char sym;
-	int neighbors,j; char *name; 
+	int neighbors,j; char *name = malloc(sizeof(char)*32); 
+
 	while(1){
-		
-		printf("EXIT == G\n");
-		printf("FILE == F\n");
 
-		scanf("%c",&sym);
-			
-		if(sym == 'G')
-			break;
+		while(1){
+			fflush(stdin);
 
-		if(sym == 'F'){
-			printf("Name file\n");
-			scanf("%s", &name);
+			printf("EXIT == G\n");
+			printf("FILE == F\n");
+			printf("NEXT == D\n");
 
-			FILE* new_file;
-			new_file = fopen(&name, "w");
+			sym = getchar();
 
-			for(i = 0; i < stolbik; i++){
-				for(j = 0; j < stroka; j++)
-					fwrite(&main_mass[i][j],1,sizeof(char),new_file);		
+			if(sym == 'G')
+				break;
+
+			if(sym == 'F'){
+				printf("Name file\n");
+				scanf("%s", name);
+
+				FILE* new_file;
+				new_file = fopen(name, "wb");
+
+				if (new_file == NULL) 
+					perror("ERROR 6");
+
+				for(i = 0; i < stolbik; i++){
+					for(j = 0; j < stroka; j++)
+						fwrite(&main_mass[i][j],1,sizeof(char),new_file);	
+				}
+				fclose(new_file);
 			}
-			fclose(new_file);
-		}
+
+			if (sym == 'D')
+				break;
+
+		}	
+
+		if (sym == 'G')
+			break;
 
 		for(i = 0; i < stolbik; i++){
 			for(j = 0; j < stroka-2; j++){
@@ -206,9 +222,10 @@ int main(int argc,char* argv[]){
 			for(j = 0; j < stroka; j++)
 				printf("%c",main_mass[i][j]);			
 		}
-	}
-	free(main_mass);
+	} 
+	free(*main_mass);
 	free(main_line);
+	free(name);
 
 	return 0;
 }
