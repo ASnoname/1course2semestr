@@ -5,36 +5,36 @@ int Zhizn(char** main_mass,int i,int j,int stroka,int stolbik){
 	int k,l,neighbors = 0;
 	if(j-1 < 0){
 		l = stroka-3;
-		if(main_mass[i][l] == '+' || main_mass[i][l] == '#')
+		if(main_mass[i][l] == '+')
 			neighbors++;
 	}
-	else if(main_mass[i][j-1] == '+' || main_mass[i][j-1] == '#')
+	else if(main_mass[i][j-1] == '+')
 		neighbors++;
 	if(i-1 < 0){
 		k = stolbik-1;
-		if(main_mass[k][j] == '+' || main_mass[k][j] == '#')
+		if(main_mass[k][j] == '+')
 			neighbors++;
 	}
-	else if(main_mass[i-1][j] == '+' || main_mass[i-1][j] == '#')
+	else if(main_mass[i-1][j] == '+')
 		neighbors++;
 	if(i+1 > stolbik-1){
 		k=0;
-		if(main_mass[k][j] == '+' || main_mass[k][j] == '#')
+		if(main_mass[k][j] == '+')
 			neighbors++;
 	}
-	else if(main_mass[i+1][j] == '+' || main_mass[i+1][j] == '#')
+	else if(main_mass[i+1][j] == '+')
 		neighbors++;
 	if(j+1 > stroka-3){
 		l=0;
-		if(main_mass[i][l] == '+' || main_mass[i][l] == '#')
+		if(main_mass[i][l] == '+')
 			neighbors++;
 	}
-	else if(main_mass[i][j+1] == '+' || main_mass[i][j+1] == '#')
+	else if(main_mass[i][j+1] == '+')
 		neighbors++;
 	if(i-1 < 0 && j-1 < 0){
 		k = stolbik-1;
 		l = stroka-3;
-		if(main_mass[i][j] == '+' || main_mass[i][j] == '#')
+		if(main_mass[i][j] == '+')
 			neighbors++;
 	}
 	else{
@@ -44,13 +44,13 @@ int Zhizn(char** main_mass,int i,int j,int stroka,int stolbik){
 		if(j-1 < 0)
 			l = stroka-3;
 		else l = j-1;
-		if(main_mass[k][l] == '+' || main_mass[k][l] == '#')
+		if(main_mass[k][l] == '+')
 			neighbors++;
 	}
 	if(i+1 > stolbik-1 && j-1 < 0){
 		k = 0;
 		l = stroka-3;
-		if(main_mass[k][l] == '+' || main_mass[k][l] == '#')
+		if(main_mass[k][l] == '+')
 			neighbors++;
 	}
 	else{
@@ -60,13 +60,13 @@ int Zhizn(char** main_mass,int i,int j,int stroka,int stolbik){
 		if(j-1 < 0)
 			l = stroka-3;
 		else l = j-1;
-		if(main_mass[k][l] == '+' || main_mass[k][l] == '#')
+		if(main_mass[k][l] == '+')
 			neighbors++;
 	}
 	if(i+1 > stolbik-1 && j+1 > stroka-3){
 		k = 0;
 		l = 0;
-		if(main_mass[k][l] == '+' || main_mass[k][l] == '#')
+		if(main_mass[k][l] == '+')
 			neighbors++;
 	}
 	else{
@@ -76,13 +76,13 @@ int Zhizn(char** main_mass,int i,int j,int stroka,int stolbik){
 		if(j+1 > stroka-3)
 			l = 0;
 		else l = j+1;
-		if(main_mass[k][l] == '+' || main_mass[k][l] == '#')
+		if(main_mass[k][l] == '+')
 			neighbors++;
 	}
 	if(i-1 < 0 && j+1 > stroka-3){
 		k = stolbik-1;
 		l = 0;
-		if(main_mass[k][l] == '+' || main_mass[k][l] == '#')
+		if(main_mass[k][l] == '+')
 			neighbors++;
 	}
 	else{
@@ -92,7 +92,7 @@ int Zhizn(char** main_mass,int i,int j,int stroka,int stolbik){
 		if(j+1 > stroka-3)
 			l = 0;
 		else l = j+1;
-		if(main_mass[k][l] == '+' || main_mass[k][l] == '#')
+		if(main_mass[k][l] == '+')
 			neighbors++;
 	}
 	return neighbors;
@@ -155,7 +155,11 @@ int main(int argc,char* argv[]){
 		return 0;
 	}	
 	char sym;
-	int neighbors,j; char *name = malloc(sizeof(char)*32); 
+	int neighbors,j; 
+	char *name = malloc(sizeof(char)*32); 
+	char** new_mass = malloc(sizeof(char)*stroka);
+
+	new_mass = main_mass;	
 
 	while(1){
 
@@ -183,7 +187,7 @@ int main(int argc,char* argv[]){
 
 				for(i = 0; i < stolbik; i++){
 					for(j = 0; j < stroka; j++)
-						fwrite(&main_mass[i][j],1,sizeof(char),new_file);	
+						fwrite(&new_mass[i][j],1,sizeof(char),new_file);	
 				}
 				fclose(new_file);
 			}
@@ -199,31 +203,20 @@ int main(int argc,char* argv[]){
 		for(i = 0; i < stolbik; i++){
 			for(j = 0; j < stroka-2; j++){
 				neighbors = Zhizn(main_mass,i,j,stroka,stolbik);
-				if(neighbors == 3){
-					if(main_mass[i][j] == '-')
-						main_mass[i][j] = '~';
-				}
-				if(neighbors > 3 || neighbors < 2){
-					if(main_mass[i][j] == '+')
-						main_mass[i][j] = '#';
-				}
-			}
-		}
-		for(i = 0; i < stolbik; i++){
-			for(j = 0; j < stroka-2; j++){
-				if(main_mass[i][j] == '#')
-					main_mass[i][j] = '-';
-				if(main_mass[i][j] == '~')
-					main_mass[i][j] = '+';
+				if(neighbors == 3)
+					new_mass[i][j] = '+';
+				if(neighbors > 3 || neighbors < 2)
+					new_mass[i][j] = '-';
 			}
 		}
 
 		for(i = 0; i < stolbik; i++){
 			for(j = 0; j < stroka; j++)
-				printf("%c",main_mass[i][j]);			
+				printf("%c",new_mass[i][j]);			
 		}
 	} 
 	free(*main_mass);
+	free(*new_mass);
 	free(main_line);
 	free(name);
 
