@@ -1,100 +1,39 @@
 #include <stdio.h>      		 
 #include <stdlib.h>
 
-int Zhizn(char** main_mass,int i,int j,int stroka,int stolbik){
-	int k,l,neighbors = 0;
-	if(j-1 < 0){
-		l = stroka-3;
-		if(main_mass[i][l] == '+')
-			neighbors++;
-	}
-	else if(main_mass[i][j-1] == '+')
+int Zhizn(char** new_mass,int i,int j,int stroka,int stolbik){
+	int neighbors = 0; int x1,x2,y1,y2; int x = i, y = j;
+	
+	if (i-1 < 0)
+		x1 = stroka-3;
+	else x1 = i-1;
+	if (i+1 > stroka-3)
+		x2 = 0;
+	else x2 = i+1;
+	if (j-1 < 0)
+		y1 = stolbik-1;
+	else y1 = j-1;
+	if (j+1 > stolbik-1)
+		y2 = 0;
+	else y2 = j+1;
+
+	if (new_mass[x1][y1] == '+')
 		neighbors++;
-	if(i-1 < 0){
-		k = stolbik-1;
-		if(main_mass[k][j] == '+')
-			neighbors++;
-	}
-	else if(main_mass[i-1][j] == '+')
+	if (new_mass[x][y1] == '+')
 		neighbors++;
-	if(i+1 > stolbik-1){
-		k=0;
-		if(main_mass[k][j] == '+')
-			neighbors++;
-	}
-	else if(main_mass[i+1][j] == '+')
+	if (new_mass[x][y2] == '+')
 		neighbors++;
-	if(j+1 > stroka-3){
-		l=0;
-		if(main_mass[i][l] == '+')
-			neighbors++;
-	}
-	else if(main_mass[i][j+1] == '+')
+	if (new_mass[x1][y] == '+')
 		neighbors++;
-	if(i-1 < 0 && j-1 < 0){
-		k = stolbik-1;
-		l = stroka-3;
-		if(main_mass[i][j] == '+')
-			neighbors++;
-	}
-	else{
-		if(i-1 < 0)
-			k = stolbik-1;
-		else k = i-1;
-		if(j-1 < 0)
-			l = stroka-3;
-		else l = j-1;
-		if(main_mass[k][l] == '+')
-			neighbors++;
-	}
-	if(i+1 > stolbik-1 && j-1 < 0){
-		k = 0;
-		l = stroka-3;
-		if(main_mass[k][l] == '+')
-			neighbors++;
-	}
-	else{
-		if( i+1 > stolbik-1)
-			k = 0;
-		else k = i+1;
-		if(j-1 < 0)
-			l = stroka-3;
-		else l = j-1;
-		if(main_mass[k][l] == '+')
-			neighbors++;
-	}
-	if(i+1 > stolbik-1 && j+1 > stroka-3){
-		k = 0;
-		l = 0;
-		if(main_mass[k][l] == '+')
-			neighbors++;
-	}
-	else{
-		if(i+1 > stolbik-1)
-			k = 0;
-		else k = i+1;
-		if(j+1 > stroka-3)
-			l = 0;
-		else l = j+1;
-		if(main_mass[k][l] == '+')
-			neighbors++;
-	}
-	if(i-1 < 0 && j+1 > stroka-3){
-		k = stolbik-1;
-		l = 0;
-		if(main_mass[k][l] == '+')
-			neighbors++;
-	}
-	else{
-		if(i-1 < 0)
-			k = stolbik-1;
-		else k = i-1;
-		if(j+1 > stroka-3)
-			l = 0;
-		else l = j+1;
-		if(main_mass[k][l] == '+')
-			neighbors++;
-	}
+	if (new_mass[x2][y] == '+')
+		neighbors++;
+	if (new_mass[x1][y2] == '+')
+		neighbors++;
+	if (new_mass[x2][y1] == '+')
+		neighbors++;
+	if (new_mass[x2][y2] == '+')
+		neighbors++;
+
 	return neighbors;
 }
 
@@ -118,7 +57,7 @@ int main(int argc,char* argv[]){
 	}
 
 	char* main_line = NULL;
-	char** main_mass = NULL;
+	char** new_mass = NULL;
 	
 	int stroka,stolbik,pole;
 
@@ -138,10 +77,10 @@ int main(int argc,char* argv[]){
 		return 0;
 	}	
 	main_line = malloc(sizeof(char)*pole);
-	main_mass = malloc(sizeof(char)*stroka);
-	int i;
+	new_mass = malloc(sizeof(char)*stroka);
+	int i,k;
 	for(i = 0; i < stolbik; i++)
-		main_mass[i] = &main_line[i*stroka];
+		new_mass[i] = &main_line[i*stroka];
 
 	fseek(fileik,0,SEEK_SET);
 	fread(main_line,1,pole,fileik);
@@ -157,9 +96,6 @@ int main(int argc,char* argv[]){
 	char sym;
 	int neighbors,j; 
 	char *name = malloc(sizeof(char)*32); 
-	char** new_mass = malloc(sizeof(char)*stroka);
-
-	new_mass = main_mass;	
 
 	while(1){
 
@@ -194,7 +130,6 @@ int main(int argc,char* argv[]){
 
 			if (sym == 'D')
 				break;
-
 		}	
 
 		if (sym == 'G')
@@ -202,7 +137,7 @@ int main(int argc,char* argv[]){
 
 		for(i = 0; i < stolbik; i++){
 			for(j = 0; j < stroka-2; j++){
-				neighbors = Zhizn(main_mass,i,j,stroka,stolbik);
+				neighbors = Zhizn(new_mass,i,j,stroka,stolbik);
 				if(neighbors == 3)
 					new_mass[i][j] = '+';
 				if(neighbors > 3 || neighbors < 2)
@@ -215,7 +150,6 @@ int main(int argc,char* argv[]){
 				printf("%c",new_mass[i][j]);			
 		}
 	} 
-	free(*main_mass);
 	free(*new_mass);
 	free(main_line);
 	free(name);
