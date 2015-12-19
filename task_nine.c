@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <math.h>
 
-void memcpyplus(char* mass,char* ver,int x,int y){
+char* memcpyplus(char* ver,int x,int y){
 	int h,j;
-	for (h = y + 1, j = 0; h < x - y; h++, j++)
+	char* mass = NULL;
+	mass = (char*)malloc(sizeof(char)*(x-y));
+
+	for (h = y + 1, j = 0; h < x; h++, j++){
 		mass[j] = ver[h];
+	}	
+	mass[j] = '\0';
+	return mass;
 }
 
 int main(int argc, char *argv[])
@@ -48,27 +54,34 @@ int main(int argc, char *argv[])
 
 	fclose(fileik); int a[42] = {-1};
 
+	for (i = 0; i < 42; i++) {
+		a[i] = -1;
+	}
+
+
 	for (i = 0; i < pole; i++)
 	{
-		if (ver[i] == 9 || '\r' || '\n'){
-			for (l = 1; l < 41; l++)
-				if (a[l] == -1)
-					a[l] = i;		
+		if (ver[i] == 9 || ver[i] == '\r' || ver[i] == '\n'){
+			for (l = 1; l < 41; l++){
+				if (a[l] == -1){
+					a[l] = i;	
+					break;
+				}	
+			}			
 		}
 	}
 
 	k = 0;
 	for (i = 1; a[i] != -1; i++)
 	{
-		memcpyplus(mass[k].key,ver,a[i],a[i-1]);
-		i++; 		
-		memcpyplus(mass[k].name,ver,a[i],a[i-1]);
+		mass[k].key = memcpyplus(ver,a[i],a[i-1]);
 		i++;
-		memcpyplus(mass[k].num,ver,a[i],a[i-1]);
+		mass[k].name = memcpyplus(ver,a[i],a[i-1]);
+		i++;
+		mass[k].num = memcpyplus(ver,a[i],a[i-1]);
+		i++;
 		k++;
 	}
-
-	printf("%s\n", mass[2].key);
 
 	free(ver);
 	return 0;
