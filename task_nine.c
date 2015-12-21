@@ -2,6 +2,19 @@
 #include <math.h>
 #include <stdlib.h>
 
+struct data
+{
+	char* key;
+	char* name;
+	char* num;
+};
+
+typedef struct Node{		
+	char* family; // Фамилия - ключ
+	struct data *adress; // Адрес структуры с данными
+	struct Node*next;
+} Node_one;
+
 char* memcpyplus(char* ver,int x,int y){
 	int h,j;
 	char* mass = NULL;
@@ -14,7 +27,7 @@ char* memcpyplus(char* ver,int x,int y){
 	return mass;
 }
 
-void push(Node_one** head, char family, int adress) {
+void push(Node_one** head, char* family, struct data *adress) {
     Node_one *tmp = malloc(sizeof(Node_one));
     tmp->family = family;
     tmp->adress = adress;
@@ -24,7 +37,7 @@ void push(Node_one** head, char family, int adress) {
 
 int main(int argc, char *argv[])
 {
-	
+	struct data mass[10];
 	char* light; 
 
 	if(argc != 2){
@@ -43,13 +56,6 @@ int main(int argc, char *argv[])
 	}
 
 	int k,l,i;
-
-	struct data
-	{
-		char* key;
-		char* name;
-		char* num;
-	} mass[10];
 
 	for(i = 0; feof(fileik) == 0; i++)
 		fgetc(fileik);
@@ -92,6 +98,8 @@ int main(int argc, char *argv[])
 		k++;
 	}
 
+	free(ver); 
+
 //Хеширование начало
 
 	int summer[10] = {0}; int key_len[10]; int sum[10];
@@ -106,64 +114,22 @@ int main(int argc, char *argv[])
 	for(i = 0; i < 10; i++)
 		sum[i] = summer[i] % 10;	
 
-//Хеширование конец	
-
-	typedef struct Node Node_one;
-
-	struct Node{
-		char family; // Фамилия - ключ
-		int adress; // Адрес структуры с данными
-		Node_one *next;
-	};
-
-	int size_spisok[10] = {0}; 
-
-	for (i = 0; i < 10; i++)
-	{
-		switch (sum[i]){
-			case 0 : size_spisok[0] += 1;
-			case 1 : size_spisok[1] += 1;
-			case 2 : size_spisok[2] += 1;
-			case 3 : size_spisok[3] += 1;
-			case 4 : size_spisok[4] += 1;
-			case 5 : size_spisok[5] += 1;
-			case 6 : size_spisok[6] += 1;
-			case 7 : size_spisok[7] += 1;
-			case 8 : size_spisok[8] += 1;
-			case 9 : size_spisok[9] += 1;
-		}
-	}
+//Хеширование конец
 
 	Node_one* head[10] = {NULL}; int j;
 
-	for (i = 0; i < 10; i++)
-	{
-		for (k = 0, j = 0; k < size_spisok[i] && j < 10; k++, j++)
-		{
-			if(sum[j] == k){
-				push(*head[i],mass[j].key,&mass[j]); 
-			}
-		}
+	for (i = 0; i < 10; i++) {
+		push(&head[sum[i]],mass[i].key,&mass[i]);
 	}
 
-
-
-	free(ver); char fam[15] = {0}; int pass; 
-
-/*	while(1){
-		sum = 0;
-		gets(fam); 
-
-		for (i = 0; i < 15; i++)
-			sum += fam[i];
-
-		pass = sum % 10;
+	while(1){
+		
 		
 
 
 
 	}
-*/
+
 
 	return 0;
 }
