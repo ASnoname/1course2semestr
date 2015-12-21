@@ -122,14 +122,55 @@ int main(int argc, char *argv[])
 		push(&head[sum[i]],mass[i].key,&mass[i]);
 	}
 
+	char* input = malloc(sizeof(char)*15); int len_input = 0; int sum_input = 0; int summer_input = 0; 
+	Node_one* temp_head = NULL; struct data* tmp_tmp; int o;
+
 	while(1){
-		
-		
 
+		summer_input = 0; o = 0; i = 0;
 
+		do{
+			scanf("%c", input+i);
+			o++; i++;
+		} while (input[i-1] != '\n');
+		if(o == 1&&input[0]=='\n'){
+			i = 0;
+			do{
+				scanf("%c", input+i);
+				o++; i++;
+			} while (input[i-1] != '\n');
+		}
+		
+		if (o == 2&&input[0]=='\n')
+			break;
+		else
+		{
+			input[i-1]='\0';	
+		}
+
+		len_input = strlen(input);
+
+		for (i = 0; i < len_input; i++)
+			summer_input += input[i];
+		sum_input = summer_input % 10;
+		temp_head = head[sum_input];
+
+		for (i = 0; i < 10; i++)
+		{
+			if (!strcmp(input, temp_head->family))
+			{
+				tmp_tmp = temp_head->adress;
+				printf("%s\n%s\n%s\n", tmp_tmp->key, tmp_tmp->name, tmp_tmp->num);
+				break;
+			}
+			temp_head = temp_head->next;
+		}
+
+		temp_head = NULL;
 
 	}
 
-
+	free(input);
+	free(*head);
 	return 0;
 }
