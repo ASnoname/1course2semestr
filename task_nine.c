@@ -123,30 +123,43 @@ int main(int argc, char *argv[])
 	}
 
 	char* input = malloc(sizeof(char)*15); int len_input = 0; int sum_input = 0; int summer_input = 0; 
-	Node_one* temp_head = NULL; struct data* tmp_tmp; int o;
+	Node_one* temp_head = NULL; struct data* tmp_tmp; int o; int er = 0;
 
 	while(1){
 
-		summer_input = 0; o = 0; i = 0;
+		summer_input = 0; o = 0; i = 0; er = 0;
 
 		do{
 			scanf("%c", input+i);
 			o++; i++;
 		} while (input[i-1] != '\n');
-		if(o == 1&&input[0]=='\n'){
+		if(o == 1 && input[0]=='\n'){
 			i = 0;
 			do{
 				scanf("%c", input+i);
 				o++; i++;
 			} while (input[i-1] != '\n');
 		}
-		
-		if (o == 2&&input[0]=='\n')
+
+		if (o == 2 && input[0] == '\n')
 			break;
 		else
 		{
-			input[i-1]='\0';	
+			input[i-1] = '\0';	
 		}
+
+		for (i = 0; i < 10; i++)
+		{
+			if (!strcmp(input, mass[i].key))
+				er++;
+		}
+
+		if (er == 0)
+			{
+				printf("ERROR 3\n");
+			}
+			else
+			{
 
 		len_input = strlen(input);
 
@@ -167,6 +180,7 @@ int main(int argc, char *argv[])
 		}
 
 		temp_head = NULL;
+		}
 
 	}
 
