@@ -118,9 +118,7 @@ int main(int argc, char *argv[]){
       } while(x != 9);
     temp_count[d] = '\0';  
 
-    *count[k] = *temp_count;
-
-    printf("%s\n", count[k]);
+    count[k] = temp_count;
   
     do{
         x = fgetc(file_in);
@@ -131,6 +129,24 @@ int main(int argc, char *argv[]){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // от piramida принимает a[i]
+    // отдаю piramida a[i] и кол во элементов
+
+    // отдаю run a[i] и номера первого и последнего элементов
+    // от run принимаю a[i]
 
     
   return 0;
