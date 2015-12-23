@@ -2,6 +2,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#define Happy_New_Year 10
+
 struct data
 {
 	char* key;
@@ -37,7 +39,7 @@ void push(Node_one** head, char* family, struct data *adress) {
 
 int main(int argc, char *argv[])
 {
-	struct data mass[10];
+	struct data mass[Happy_New_Year];
 	char* light; 
 
 	if(argc != 2){
@@ -67,9 +69,9 @@ int main(int argc, char *argv[])
 	for ( i = 0; i < pole; i++)
 		ver[i] = fgetc(fileik);
 
-	fclose(fileik); int a[42] = {-1};
+	fclose(fileik); int a[Happy_New_Year*4 +2] = {-1};
 
-	for (i = 0; i < 42; i++) {
+	for (i = 0; i < Happy_New_Year*4 +2; i++) {
 		a[i] = -1;
 	}
 
@@ -77,7 +79,7 @@ int main(int argc, char *argv[])
 	for (i = 0; i < pole; i++)
 	{
 		if (ver[i] == 9 || ver[i] == '\r' || ver[i] == '\n'){
-			for (l = 1; l < 41; l++){
+			for (l = 1; l < Happy_New_Year*4 +1; l++){
 				if (a[l] == -1){
 					a[l] = i;	
 					break;
@@ -102,23 +104,23 @@ int main(int argc, char *argv[])
 
 //Хеширование начало
 
-	int summer[10] = {0}; int key_len[10]; int sum[10];
+	int summer[Happy_New_Year] = {0}; int key_len[Happy_New_Year]; int sum[Happy_New_Year];
 
-	for(i = 0; i < 10; i++)
+	for(i = 0; i < Happy_New_Year; i++)
 		key_len[i] = strlen(mass[i].key);
 
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < Happy_New_Year; i++)
 		for (k = 0; k < key_len[i]; k++)
 			summer[i] += mass[i].key[k];
 
-	for(i = 0; i < 10; i++)
-		sum[i] = summer[i] % 10;	
+	for(i = 0; i < Happy_New_Year; i++)
+		sum[i] = summer[i] % Happy_New_Year;	
 
 //Хеширование конец
 
-	Node_one* head[10] = {NULL}; int j;
+	Node_one* head[Happy_New_Year] = {NULL}; int j;
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < Happy_New_Year; i++) {
 		push(&head[sum[i]],mass[i].key,&mass[i]);
 	}
 
@@ -148,7 +150,7 @@ int main(int argc, char *argv[])
 			input[i-1] = '\0';	
 		}
 
-		for (i = 0; i < 10; i++)
+		for (i = 0; i < Happy_New_Year; i++)
 		{
 			if (!strcmp(input, mass[i].key))
 				er++;
@@ -165,10 +167,10 @@ int main(int argc, char *argv[])
 
 		for (i = 0; i < len_input; i++)
 			summer_input += input[i];
-		sum_input = summer_input % 10;
+		sum_input = summer_input % Happy_New_Year;
 		temp_head = head[sum_input];
 
-		for (i = 0; i < 10; i++)
+		for (i = 0; i < Happy_New_Year; i++)
 		{
 			if (!strcmp(input, temp_head->family))
 			{
