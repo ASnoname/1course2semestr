@@ -7,7 +7,9 @@ const max_strok = 500;
 const max_stroki = 100;
 const max_file = 5;
 
-void heapify (char* arr[], char* arrHelp[], int heapsize, int index) {
+int stolb = 0;
+
+void heapify (char* arr[], char* arrHelp[], int heapsize, int index){ // Пирамидальная сортировка 2.
 	int left = (index + 1) * 2 - 1;
 	int right = (index + 1) *2;
 	int max = 0;
@@ -21,17 +23,20 @@ void heapify (char* arr[], char* arrHelp[], int heapsize, int index) {
 		max = right;
 	
 	if (index != max){
+
 		temp = arr[index];
 		arr[index] = arr[max];
 		arr[max] = temp;
+
 		tempHelp = arrHelp[index];
 		arrHelp[index] = arrHelp[max];
-		arrHelp[max] = temp;
+		arrHelp[max] = tempHelp;
+
 		heapify (arr, arrHelp, heapsize, max);
 	}
 }
 
-void heapsort (char* arr[], char* arrHelp[], int left, int right) {
+void heapsort (char* arr[], char* arrHelp[], int left, int right){ // Пирамидальная сортировка 1.
 	int heapsize = right + 1; int i;
 	char* temp; char* tempHelp;
 	for (i = (heapsize - 1) / 2; i >= left; i--){
@@ -41,38 +46,58 @@ void heapsort (char* arr[], char* arrHelp[], int left, int right) {
 		temp = arr[i];
 		arr[i] = arr[left];
 		arr[left] = temp;
+
 		tempHelp = arrHelp[i];
 		arrHelp[i] = arrHelp[left];
 		arrHelp[left] = tempHelp;
+
 		heapsize--;
 		heapify (arr, arrHelp, heapsize, 0);
 	}
 }
 
-int partition (char* arr[], char* arrHelp[], int left, int right) {
-	char* pivot = arr[right];
-	char* pivotHelp = arrHelp[right];
-	char* temp; char* tempHelp;
+int partition (char* arr[], char* arrHelp[], int left, int right){    // Элемент. От него слева меньшие, чем он. От него справа большие, чем он.
+	char* pivot = arr[right];     char* pivotHelp = arrHelp[right];
+	char* temp; 				  char* tempHelp;
 	int i = left; int j;
 	for (j = left; j < right; j++){
-		if (strcmp(arrHelp[j], pivotHelp) <= 0){
-			temp = arr[j];
-			arr[j] = arr[i];
-			arr[i] = temp;
-			tempHelp = arrHelp[j];
-			arrHelp[j] = arrHelp[i];
-			arrHelp[i] = tempHelp;
-			i++;
+		if (stolb < 0){
+			if (strcmp(arrHelp[j], pivotHelp) >= 0){ 
+				temp = arr[j];
+				arr[j] = arr[i];
+				arr[i] = temp;
+
+				tempHelp = arrHelp[j];
+				arrHelp[j] = arrHelp[i];
+				arrHelp[i] = tempHelp;
+
+				i++;
+			}
 		}
+		if (stolb > 0){
+			if (strcmp(arrHelp[j], pivotHelp) <= 0){ 
+				temp = arr[j];
+				arr[j] = arr[i];
+				arr[i] = temp;
+
+				tempHelp = arrHelp[j];
+				arrHelp[j] = arrHelp[i];
+				arrHelp[i] = tempHelp;
+
+				i++;
+			}
+		}	
 	}
 	arr[right] = arr[i];
 	arr[i] = pivot;
+
 	arrHelp[right] = arrHelp[i];
 	arrHelp[i] = pivotHelp;
+
 	return i;
 }
 
-void introsort_r (char* arr[], char* arrHelp[], int left, int right, int maxdepth) {
+void introsort_r (char* arr[], char* arrHelp[], int left, int right, int maxdepth){ // Быстрая сортировка + если надо пирамидальная.
 	if (right > left){
 		if (maxdepth == 0){
 			heapsort (&arr[left], &arrHelp[left], 0, right - left);
@@ -84,15 +109,13 @@ void introsort_r (char* arr[], char* arrHelp[], int left, int right, int maxdept
 	}
 }
 
-
-void introsort (char* arr[], char* arrHelp[], int length) {
+void introsort (char* arr[], char* arrHelp[], int length){ // Запуск быстрой сортировки.
 	int maxdepth = 2 * log(length);
 	introsort_r (arr, arrHelp, 0, length - 1, maxdepth);
 }
 
-
-int find_max (char *arr[], int length) {
-	char* max;
+int find_max (char *arr[], int length){ // Находит макс. значение среди файлов.
+	char* max = arr[0];
 	int index = 0; int i;
 	for (i = 0; i < length; i++){
 		if (arr[i] == NULL){
@@ -106,7 +129,7 @@ int find_max (char *arr[], int length) {
 	return index;
 }
 
-int split (FILE* input_file, int stolb) {
+int split (FILE* input_file, int stolb){ // Деление на файлы
 	int file_count = 1;
 	int j = 1; int i = 0; int eof = 0;
 	char *arr[max_strok];
@@ -119,7 +142,7 @@ int split (FILE* input_file, int stolb) {
 		while(1){
 			if (max_strok == i)
 				break;
-			arr[i] = calloc (max_stroki, 2);
+			arr[i] = calloc (max_stroki, 1);
 			arrHelp[i] = arr[i];
 			rc = fgets(arr[i], max_stroki, input_file);
 			j = 1;
@@ -128,7 +151,7 @@ int split (FILE* input_file, int stolb) {
 				break;
 			}
 			while (1){
-				if (j == stolb) break;
+				if (j == abs(stolb)) break;
 				if (*(arrHelp[i]++) == 9) j++;
 			} 
 			i++;
@@ -157,7 +180,7 @@ int split (FILE* input_file, int stolb) {
 	}
 }
 
-void cleanup (int file_count) {
+void cleanup (int file_count){ // Отчистка и удаление временных файлов.
 	int i;
 	for (i = 1; i <= file_count; i++){
 		char str[max_file];
@@ -166,7 +189,7 @@ void cleanup (int file_count) {
 	}
 }
 
-int merge (FILE* output_file, int file_count) {
+int merge (FILE* output_file, int file_count){  // Сборка файлов в выходной.
 	FILE* file_arr[file_count];
 	int j = 0; int i; char str[max_file];
 	for (i = 1; i <= file_count; i++){
@@ -211,7 +234,7 @@ int merge (FILE* output_file, int file_count) {
 	return 0;
 }
 
-int main (int argc, char* argv[]) {
+int main (int argc, char* argv[]){ 
 	if (4 != argc){
 		printf("ERROR 1");
 		return -1;
@@ -221,8 +244,10 @@ int main (int argc, char* argv[]) {
 		printf("ERROR 2");
 		return -1;
 	}
-	int help = argv[3][0]-'0';
-	int file_count = split (input_file, help);
+
+	sscanf(argv[3], "%i", &stolb);
+
+	int file_count = split (input_file, stolb);
 	if (file_count == -1){
 		fclose (input_file);
 		return -1;
