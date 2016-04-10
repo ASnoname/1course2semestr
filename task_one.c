@@ -6,24 +6,25 @@ void dfs(graph_user graph){
 
 	int i,k;
 
-	int line[2*N-1];
-	for (i = 1; i < 2*N-1; i++)
+	int line[2*N+1];
+	for (i = 2; i < 2*N-1; i++)
 		line[i] = -1;
 
 	int yes[N];
-	for (i = 1; i < N; i++)
+	for (i = 0; i < N; i++)
 		yes[i] = 0;
 
-	yes[0] = 1; line[0] = 1; int var_temp = 0;
+	yes[1] = 1; line[1] = 1; int var_temp = 0;
+				line[0] = 0;
 
-	i = 1; int h = 0; int back = 0;
+	i = 1; int h; int back = 0;
 
 	do{ 
 		h = 0;
 		for (k = 2; k <= N; k++)
 		{  
-			if ((existence(graph,i,k) != -3)  &&  (yes[k-1] == 0)){
-				yes[k-1] = 1;
+			if ((existence(graph,i,k) != -3)  &&  (yes[k] == 0)){
+				yes[k] = 1;
 				var_temp++;
 				line[var_temp + back] = k;				
 				i = k;
@@ -35,7 +36,7 @@ void dfs(graph_user graph){
 			i = line[var_temp + back - 1];
 			back++;
 		}	
-	} while(i != 1);
+	} while(i != 0);
 
 	for (i = 0; i < 2*N-1; i++)
 		printf("%d\n", line[i]);
