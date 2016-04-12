@@ -3,29 +3,34 @@
 
 void dfs(graph_user graph){
 	int N = count_node(graph);
-
+	
 	int i,k;
 
-	int line[2*N+1];
-	for (i = 2; i < 2*N-1; i++)
+	int line[N+1];
+	for (i = 2; i < N+1; i++)
 		line[i] = -1;
 
 	int yes[N];
-	for (i = 0; i < N; i++)
+	for (i = 1; i < N; i++)
 		yes[i] = 0;
 
-	yes[1] = 1; line[1] = 1; int var_temp = 0;
+	yes[0] = 1; line[1] = 1; int var_temp = 1;
 				line[0] = 0;
 
-	i = 1; int h; int back = 0;
+	i = 1; int h; int back = 0; int g = 0;
 
 	do{ 
 		h = 0;
 		for (k = 2; k <= N; k++)
 		{  
-			if ((existence(graph,i,k) != -3)  &&  (yes[k] == 0)){
-				yes[k] = 1;
+			if ((existence(graph,i,k) != -3)  &&  (yes[k-1] == 0)){
+				yes[k-1] = 1;
+
+				if (g == 1)
+					var_temp--;
+
 				var_temp++;
+				g = 0;
 				line[var_temp + back] = k;				
 				i = k;
 				h = 1;
@@ -33,30 +38,19 @@ void dfs(graph_user graph){
 			}
 		}
 		if (!h){
-			i = line[var_temp + back - 1];
+			i = line[var_temp - back - 1];
 			back++;
+			if (i == 1)
+			{
+				var_temp = var_temp + back;
+				back = 0;
+			}
+			g = 1;
 		}	
 	} while(i != 0);
 
-	for (i = 0; i < 2*N-1; i++)
+	for (i = 1; i < N+1; i++)
 		printf("%d\n", line[i]);
-
-
-	// int lg = 1;
-
-	// // for (i = 1; i <= N; i++)
-	// // {
-	// // 	for (k = 0; k < 2*N-1; k++)
-	// // 	{
-	// // 		if ((i == line[k]) && (lg = 0))
-	// // 			line[k] = -1;
-	// // 		if ((line[k] == i) && (lg == 1)){
-	// // 			lg  = 0;
-	// // 			printf("%d\n", i);
-	// // 		}
-	// // 	}
-	// // 	lg = 1;
-	// // }
 }
 
 void bfs(graph_user graph){
@@ -113,7 +107,6 @@ void main (int argc, char* argv[]){
 	} 
 	else graph = reader(fileik);
 
-//	bfs(graph);
+	bfs(graph);
 	dfs(graph);
-
 }
