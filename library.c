@@ -1,6 +1,7 @@
 #include "D:\proga\library.h"
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 
 struct Graph
 {
@@ -62,7 +63,7 @@ graph_user reader(FILE* file){
 
 	fseek(file,place,SEEK_SET);
 
-	struct Graph table[enter];
+	struct Graph* table = calloc(enter,sizeof(struct Graph));
 
 	int i; int t1,t2,tt; int temp = enter;
 
@@ -111,11 +112,11 @@ struct Graph* table=(struct Graph*)temp_graf;
 }
 
 int count_edges(graph_user temp_graf){
-	struct Graph* table=(struct Graph*)temp_graf;
+	struct Graph* table = (struct Graph*)temp_graf;
 	return table[0].count;
 }
 
 int count_node(graph_user temp_graf){
-	struct Graph* table=(struct Graph*)temp_graf;
+	struct Graph* table = (struct Graph*)temp_graf;
 	return table[0].N;
 }
