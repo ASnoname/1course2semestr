@@ -2,7 +2,7 @@
 #include "D:\proga\library.h"
 
 void dfs(graph_user graph){
-	int N = count_node(graph);
+	int N = func_count_node(graph);
 	
 	int i,k;
 
@@ -54,7 +54,7 @@ void dfs(graph_user graph){
 }
 
 void bfs(graph_user graph){
-	int N = count_node(graph);
+	int N = func_count_node(graph);
 
 	int i,j;
 	int line[N];
@@ -66,7 +66,7 @@ void bfs(graph_user graph){
 
 	line[0] = 1; int k = 0; int l = 0; i = 0; 
 
-	for (i = 0; i < N-1; i++)
+	for (i = 0; i < N; i++)
 	{
 		for (b = line[i] + 1; b <= N; b++)
 		{
@@ -104,8 +104,9 @@ void main (int argc, char* argv[]){
 
 	if( NULL == fileik ) { 
 		printf( "Cannot open file\n" ); 
+		return;
 	} 
-	else graph = reader(fileik);
+	graph = reader_graph_edges(fileik);
 
 	bfs(graph);
 	dfs(graph);
