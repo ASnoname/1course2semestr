@@ -3,24 +3,20 @@
 #include <math.h>
 #include <stdlib.h>
 
-// написать в каждой функции проверку на существование адреса
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-int count_graph = 0;
-
-typedef struct real_graph
+struct real 
 {
 	graph_user address_graph;
-	int weighting;
-	int orientation;
 	int form;
 	int count_edges;
 	int count_node;
-	int type;
-}real_graph;
+};
 
-real_graph* Graph_data;
+struct real* Graph_data;
+int count_graph = 0;
 
-struct Graph_w_o
+struct Graph
 {
 	int first_node;
 	int second_node;
@@ -28,25 +24,17 @@ struct Graph_w_o
 	int orient;
 };
 
-struct Graph_n_o
-{
-	int first_node;
-	int second_node;
-	int orient;
-};
+void create_new_graph(int form, int count_node, int count_edges, void* address){
 
-struct Graph_w_n
-{
-	int first_node;
-	int second_node;
-	int weight;
-};
+	Graph_data = realloc(Graph_data,count_graph+1);
 
-struct Graph_n_n
-{
-	int first_node;
-	int second_node;
-};
+	Graph_data[count_graph].form = form;
+	Graph_data[count_graph].count_node = count_node;
+	Graph_data[count_graph].count_edges = count_edges;
+	Graph_data[count_graph].address_graph = address; 
+
+	count_graph++;
+}
 
 int reader_help_two(int c){
 
@@ -58,12 +46,14 @@ int reader_help_two(int c){
 		return 1;
 }
 
-int reader_help_one(FILE* file, int* count, int* weight){
+int reader_help_one(FILE* file, int* orient, int* weight){
 
 	int i = 0; int number = 0; int c;
 
 	while(((c = fgetc(file)) >= '0') && (c <= '9')){
-		number += (c-48)*pow(10,i);
+		if (i > 0)
+			number *= pow(10,i);
+		number += (c-48);
 		i++;
 	}
 
@@ -71,7 +61,7 @@ int reader_help_one(FILE* file, int* count, int* weight){
 		c = fgetc(file);
 
 	if ((c == '<') || (c == '=') || (c == '>')){
-		*count = reader_help_two(c);
+		*orient = reader_help_two(c);
 	}	
 
 	if (c == ' ')
@@ -80,7 +70,7 @@ int reader_help_one(FILE* file, int* count, int* weight){
 	return number;
 }
 
-graph_user func_reader_edges(FILE* file){
+graph_user reader_graph_edges(FILE* file){
 
 	int weight = 0, orient = 0, count_node = reader_help_one(file,0,0);
 	int c, count_edges = 0;
@@ -98,100 +88,31 @@ graph_user func_reader_edges(FILE* file){
 
 	fseek(file,place,SEEK_SET);
 
-	struct Graph_w_o* Graph = calloc(count_edges,sizeof(struct Graph_w_o));
+	struct Graph* Graph = calloc(count_edges,sizeof(struct Graph));
+	create_new_graph(0, count_node, count_edges, Graph);
 
 	int i; int t1,t2,tt; 
-	int counter_weight = 0; 
-	int counter_orient = 0;
 
-	Graph_data[count_graph].form = 0;
-	Graph_data[count_graph].count_edges = count_edges;
-	Graph_data[count_graph].count_node = count_node;
-	Graph_data[count_graph].type = 111;
+	for(i = 0; i < count_edges; i++){
 
-	for(i=0; i < count_edges; i++){
+		t1 = reader_help_one(file, &orient,0);
+		t2 = reader_help_one(file, 0,&weight);
 
-		if ((t1 = reader_help_one(file, &orient,&weight)) > (t2 = reader_help_one(file, &orient,&weight)))
-		{
-			tt = t2;
-			t2 = t1;
-			t1 = tt;
-
-			if (orient != 0)
-				orient *= -1;
-		}
+		if (weight == 0)
+			weight += 1;
 
 		Graph[i].first_node = t1;
-		Graph[i].orient = orient;
+		Graph[i].orient = orient;  
 		Graph[i].second_node = t2;
 		Graph[i].weight = weight;
-
-		if (Graph[i].orient != 0)
-			counter_orient = 1;
-		if (Graph[i].weight != 0)
-			counter_weight = 1;		
 	}
 
 	fclose(file);
 
-	if ((counter_orient == 0) && (counter_weight == 1))
-	{
-		struct Graph_w_n* Graph_new = calloc(count_edges,sizeof(struct Graph_w_n));
-
-		for (i = 0; i < count_edges; i++)
-		{
-			Graph_new[i].first_node = Graph[i].first_node;
-			Graph_new[i].second_node = Graph[i].second_node;
-			Graph_new[i].weight = Graph[i].weight;
-		}
-
-		Graph_data[count_graph].weighting = 1;
-		Graph_data[count_graph].orientation = 0;
-		Graph_data[count_graph].address_graph = Graph_new;
-		Graph_data[count_graph].type = 110;
-	}
-
-	if ((counter_orient == 0) && (counter_weight == 0))
-	{
-		struct Graph_n_n* Graph_new = calloc(count_edges,sizeof(struct Graph_n_n));
-
-		for (i = 0; i < count_edges; i++)
-		{
-			Graph_new[i].first_node = Graph[i].first_node;
-			Graph_new[i].second_node = Graph[i].second_node;
-		}
-
-		Graph_data[count_graph].weighting = 0;
-		Graph_data[count_graph].orientation = 0;
-		Graph_data[count_graph].address_graph = Graph_new;
-		Graph_data[count_graph].type = 100;
-	}
-
-	if ((counter_orient == 1) && (counter_weight == 0))
-	{
-		struct Graph_n_o* Graph_new = calloc(count_edges,sizeof(struct Graph_n_o));
-
-		for (i = 0; i < count_edges; i++)
-		{
-			Graph_new[i].first_node = Graph[i].first_node;
-			Graph_new[i].second_node = Graph[i].second_node;
-			Graph_new[i].orient = Graph[i].orient;
-		}
-
-		Graph_data[count_graph].weighting = 0;
-		Graph_data[count_graph].orientation = 1;
-		Graph_data[count_graph].address_graph = Graph_new;
-		Graph_data[count_graph].type = 101;
-	}
-
-	count_graph++;
-
-	//delete_graph(Graph);
-
-	return Graph_new;
+	return Graph;
 }
 
-graph_user func_reader_matrix(FILE* file){
+graph_user reader_graph_matrix(FILE* file){
 	int weight = 0, orient = 0, count_node = reader_help_one(file,0,0);
 	int c, count_edges = 0;
 
@@ -208,50 +129,39 @@ graph_user func_reader_matrix(FILE* file){
 
 	fseek(file,place,SEEK_SET);
 
-	int i; int t1,t2,tt;
+	int i; 
 
-	realloc(Graph_data,count_graph);
-	int** Graph = calloc(count_node*count_node, sizeof(int))
+	int** Graph = (int**)calloc(count_node,sizeof(int*));
 
-	int counter_weight = 0; 
-	int counter_orient = 0;
+	for (i = 0; i < count_node; i++)
+		Graph[i] = (int*)calloc(count_node,sizeof(int));
 
-	Graph_data[count_graph].form = 1;
-	Graph_data[count_graph].count_edges = count_edges;
-	Graph_data[count_graph].count_node = count_node;
+	create_new_graph(1, count_node, count_edges, Graph);
 
 	for (i = 0; i < count_edges; i++)
 	{
-		t1 = reader_help_one(file, &orient,&weight);
-		t2 = reader_help_one(file, &orient,&weight);
+		int t1 = reader_help_one(file, &orient,&weight) - 1;
+		int t2 = reader_help_one(file, &orient,&weight) - 1;
 
 		if (orient == -1){
 
-			if (&weight == NULL)
+			if (weight == 0)
 				Graph[t2][t1] = 1;
-			else{
+			else
 				Graph[t2][t1] = weight;
-				counter_weight = 1;
-			}
-
-			counter_orient = 1;	
 		}	
 
-		if (orient == 1){
+		else if (orient == 1){
 
-			if (&weight == NULL)
+			if (weight == 0)
 				Graph[t1][t2] = 1;
-			else{
+			else
 				Graph[t1][t2] = weight;
-				counter_weight = 1;
-			}	
-			
-			counter_orient = 1;	
 		}	
 
-		if (orient == 0)
+		else if (orient == 0)
 		{
-			if (&weight == NULL)
+			if (weight == 0)
 			{
 				Graph[t2][t1] = 1;
 				Graph[t1][t2] = 1;
@@ -259,36 +169,11 @@ graph_user func_reader_matrix(FILE* file){
 			else {
 				Graph[t2][t1] = weight;
 				Graph[t1][t2] = weight;
-
-				counter_weight = 1;
 			}	
 		}
 	}
 
-	if ((counter_orient == 1) && (counter_weight == 0)){
-
-		Graph_data[count_graph].weighting = 0;
-		Graph_data[count_graph].orientation = 1;
-		Graph_data[count_graph].type = 101;
-	}
-
-	if ((counter_orient == 0) && (counter_weight == 0)){
-
-		Graph_data[count_graph].weighting = 0;
-		Graph_data[count_graph].orientation = 0;
-		Graph_data[count_graph].type = 100;
-	}
-
-	if ((counter_orient == 0) && (counter_weight == 1)){
-
-		Graph_data[count_graph].weighting = 1;
-		Graph_data[count_graph].orientation = 0;
-		Graph_data[count_graph].type = 110;
-	}
-
-	Graph_data[count_graph].address_graph = Graph;
-
-	count_graph++;
+	fclose(file);
 
 	return Graph;
 }
@@ -297,13 +182,44 @@ int security(graph_user temp_graf){
 
 	int i;
 
-	for (i = 0; i < count_graph; i++)
-	{
-		if (Graph_data[i].address_graph == temp_graf)
+	for(i = 0; i < count_graph; i++){
+		if (Graph_data[i].address_graph == temp_graf){
 			return i;
-	}
+		}	
+	}	
 
 	return -1;
+}
+
+void free_graph(graph_user temp_graf){
+
+	int i; 
+	int key = security(temp_graf);
+
+	if (key == -1){
+		printf("ERROR");
+	}
+
+	if (key == count_graph-1)
+	{		
+		Graph_data[key].form = 0;
+		Graph_data[key].count_node = 0;
+		Graph_data[key].count_edges = 0;
+		Graph_data[key].address_graph = NULL;
+		if (count_graph != 1)
+			Graph_data = realloc(Graph_data,count_graph-1);
+	}
+
+	else if (key != count_graph-1)
+	{
+		
+		Graph_data[key].form = Graph_data[count_graph-1].form;
+		Graph_data[key].count_node = Graph_data[count_graph-1].count_node;
+		Graph_data[key].count_edges = Graph_data[count_graph-1].count_edges;
+		Graph_data[key].address_graph = Graph_data[count_graph-1].address_graph;
+
+		Graph_data = realloc(Graph_data,count_graph-1);
+	}
 }
 
 int existence(graph_user temp_graf, int first_node, int second_node){
@@ -318,27 +234,7 @@ int existence(graph_user temp_graf, int first_node, int second_node){
 
 	if (Graph_data[key].form == 0)
 	{
-
-		if (Graph_data[key].type = 100)
-		{
-			struct Graph_n_n* Graph = (struct Graph_n_n*)temp_graf;
-		}
-
-		if (Graph_data[key].type = 101)
-		{
-			struct Graph_n_o* Graph = (struct Graph_n_o*)temp_graf;
-		}
-
-		if (Graph_data[key].type = 111)
-		{
-			struct Graph_w_o* Graph = (struct Graph_w_o*)temp_graf;
-		}
-
-		if (Graph_data[key].type = 110)
-		{
-			struct Graph_w_n* Graph = (struct Graph_n_o*)temp_graf;
-		}
-
+		struct Graph* Graph = (struct Graph*)temp_graf;
 		for (i = 0; i < Graph_data[key].count_edges; i++)
 		{
 			if ((Graph[i].orient == 0) && (Graph[i].first_node == first_node) && (Graph[i].second_node == second_node))
@@ -349,20 +245,21 @@ int existence(graph_user temp_graf, int first_node, int second_node){
 				return 1;			
 			if ((Graph[i].orient == -1) && (Graph[i].first_node == first_node) && (Graph[i].second_node == second_node))
 				return -1;			
-		}
+		}			
+
 		return -3;
 	}
 
-	int** Graph;
-
 	if (Graph_data[key].form == 1){
+
+		int** Graph;
 		Graph = Graph_data[key].address_graph;
 
-		if ((Graph[first_node][second_node] > 0) && (Graph[second_node][first_node] > 0))
+		if ((Graph[first_node-1][second_node-1] == Graph[second_node-1][first_node-1]) && (Graph[second_node-1][first_node-1] != 0))
 			return 0;
-		else if (Graph[first_node][second_node] > 0)
+		else if (Graph[first_node-1][second_node-1] > 0)
 			return 1;
-		else if (Graph[second_node][first_node] > 0)
+		else if (Graph[second_node-1][first_node-1] > 0)
 			return -1;
 		else return -3;
 	}
@@ -393,232 +290,403 @@ int func_count_node(graph_user temp_graf){
 	return Graph_data[key].count_node;
 }
 
-// graph_user make_graph(int form, int weighting, int size){
-// 	if ( (form == 0) && (weighting == 0) )
-// 	{
-// 		struct Graph_no_weighting* Graph = calloc(size,sizeof(struct Graph_no_weighting));
-// 		return Graph;
-// 	}
-// 	if ((form == 0) && (weighting == 1))
-// 	{
-// 		struct Graph_weighting* Graph = calloc(size,sizeof(struct Graph_weighting));
-// 		return Graph;
-// 	}
-// 	if (form == 1)
-// 	{
-// 		graph_user Graph = calloc(size*size, sizeof(int));
-// 		return Graph;
-// 	}
-// }
+graph_user make_graph(int form, int size){
+	if (form == 0) 
+	{
+		struct Graph* Graph = calloc(size,sizeof(struct Graph));
 
-// void delete_graph(graph_user temp_graf, int form, int weighting){
+		create_new_graph(form, size, 0, Graph);
 
-// 	int N,i;
+		return Graph;
+	}
 
-// 	if (form == 0)
-// 	{
+	if (form == 1)
+	{
+		graph_user Graph = calloc(size*size, sizeof(int));
 
-// 		if (weighting == 0)
-// 		{
-// 			struct Graph_no_weighting* Graph = (struct Graph_no_weighting*)temp_graf;
-// 			N = func_count_edges(temp_graf);
-// 			for (i = 0; i < N; i++)
-// 			{
-// 				Graph[i].count_edges = 0;
-// 				Graph[i].first_node = 0;
-// 				Graph[i].orient = 0;
-// 				Graph[i].second_node = 0;
-// 				Graph[i].count_node = 0;
-// 			}
-// 			free(temp_graf);
-// 		}
+		create_new_graph(form, size, 0, Graph);
 
-// 		if (weighting == 1)
-// 		{
-// 			struct Graph_weighting* Graph = (struct Graph_weighting*)temp_graf;
-// 			N = func_count_edges(temp_graf);
-// 			for (i = 0; i < N; i++)
-// 			{
-// 				Graph[i].count_edges = 0;
-// 				Graph[i].first_node = 0;
-// 				Graph[i].orient = 0;
-// 				Graph[i].second_node = 0;
-// 				Graph[i].count_node = 0;
-// 				Graph[i].weight = 0;
-// 			}
-// 			free(temp_graf);
-// 		}
+		return Graph;
+	}
+}
 
-// 	}
+void delete_graph(graph_user temp_graf){
 
-// 	// if (form == 1)
-// 	// {
+	free_graph(temp_graf);
+	free(temp_graf);
+}
+
+void add_edge_graph(graph_user temp_graf, int first_node, int second_node, int orient, int weight){
+
+	int key = security(temp_graf);
+
+	if (key == -1){
+		printf("ERROR");
+	}	
+
+	if (Graph_data[key].form == 0)
+	{
+		struct Graph* Graph = Graph_data[key].address_graph;
+		int count_node = ++Graph_data[key].count_node;
+
+		Graph = realloc(Graph,count_node);
+
+		Graph_data[key].address_graph = Graph;
+		Graph_data[key].count_edges += 1;
+
+		if (MAX(first_node,second_node) > Graph_data[key].count_node)
+			Graph_data[key].count_node += 1;
+
+		Graph[count_node].first_node = first_node;
+		Graph[count_node].orient = orient;
+		Graph[count_node].second_node = second_node;
+		Graph[count_node].weight = weight;
+	}
+
+	if(Graph_data[key].form == 1){
+
+		Graph_data[key].count_edges += 1;
+
+		int** Graph = Graph_data[key].address_graph;
+		int count_node = Graph_data[key].count_node;
+
+		if (MAX(first_node,second_node) > Graph_data[key].count_node)
+		{
+			Graph_data[key].count_node += 1;		
+			count_node += 1;	
+			Graph = realloc(Graph_data[key].address_graph, count_node*count_node);
+			Graph_data[key].address_graph = Graph;
+
+		}
+
+		if (orient == -1){
+
+			if (weight == 0)
+				Graph[second_node-1][first_node-1] = 1;
+			else Graph[second_node-1][first_node-1] = weight;
+		}	
+
+		if (orient == 1){
+
+			if (weight == 0)
+				Graph[first_node-1][second_node-1] = 1;
+			else Graph[first_node-1][second_node-1] = weight;
+		}	
+
+		if (orient == 0)
+		{
+			if (weight == 0)
+			{
+				Graph[second_node-1][first_node-1] = 1;
+				Graph[first_node-1][second_node-1] = 1;
+			}
+			else {
+				Graph[second_node-1][first_node-1] = weight;
+				Graph[first_node-1][second_node-1] = weight;
+			}	
+		}
+	}
+}
+
+void delete_edge(graph_user temp_graf, int first_node, int second_node){
+
+	int key = security(temp_graf);
+
+	if (key == -1){
+		printf("ERROR");
+	}
+
+	if (Graph_data[key].form == 0){
+
+		struct Graph* Graph = Graph_data[key].address_graph;
+		int count_node = Graph_data[key].count_node;
+		int count_edges = Graph_data[key].count_edges;
+
+		int i;
+		for (i = 0; i < count_edges; i++)
+			if ((first_node == Graph[i].first_node) && (second_node == Graph[i].second_node))
+				break;
+
+		if (i == count_edges)
+			printf("ERROR");
+
+		if (i == count_edges-1)
+		{
+			Graph = realloc(Graph,count_edges-1);
+		}
+
+		else if (i != count_edges-1){
+			Graph[i].first_node = Graph[count_edges-1].first_node;
+			Graph[i].second_node = Graph[count_edges-1].second_node;
+			Graph[i].orient = Graph[count_edges-1].orient;
+			Graph[i].weight = Graph[count_edges-1].weight;
+
+			Graph = realloc(Graph,count_edges-1);
+		}
+
+		Graph_data[key].count_edges -= 1;
+
+		int test_one = 0;
+		int test_two = 0;
+
+		for (i = 0; i < count_edges -1; i++)
+		{
+			if ((Graph[i].first_node != first_node) && (Graph[i].second_node != first_node))
+				test_one++;
+
+			if((Graph[i].first_node != second_node) && (Graph[i].second_node != second_node))	
+				test_two++;
+		}
+
+		if (test_one != count_edges-1)
+			Graph_data[key].count_node -= 1;
+
+		if (test_two != count_edges-1)
+			Graph_data[key].count_node -= 1;
+	}
+
+	if (Graph_data[key].form == 1){
+
+		int** Graph = Graph_data[key].address_graph;
+		int count_node = Graph_data[key].count_node;
+		int count_edges = --Graph_data[key].count_edges;
+
+		int i;
+		int test_one = 0;
+		int test_two = 0;
+
+		if ((Graph[first_node-1][second_node-1] != 0) && (Graph[second_node-1][first_node-1] != 0))
+		{
+			Graph[first_node-1][second_node-1] = 0;
+			Graph[second_node-1][first_node-1] = 0;	
+		}
+
+		if ((Graph[first_node-1][second_node-1] != 0) && (Graph[second_node-1][first_node-1] == 0))
+			Graph[first_node-1][second_node-1] = 0;
+
+		if ((Graph[second_node-1][first_node-1] != 0) && (Graph[first_node-1][second_node-1] == 0))
+			Graph[second_node-1][first_node-1] = 0;
+
+
+		for (i = 0; i < count_node; i++)
+			if (Graph[first_node-1][i] == 0)
+				test_one++;	
+
+		for (i = 0; i < count_node; i++)
+			if (Graph[i][second_node-1] == 0)
+				test_two++;			
+
+		if ((test_one == count_node) && (first_node == count_node)){
+
+			Graph = realloc(Graph,(count_node-1)*(count_node-1));
+			Graph_data[key].count_node -= 1;	
+			Graph_data[key].address_graph = Graph;	
+		}
+
+		if ((test_two == count_node) && (second_node == count_node)){
+
+			Graph = realloc(Graph,(count_node-1)*(count_node-1));
+			Graph_data[key].count_node -= 1;	
+			Graph_data[key].address_graph = Graph;	
+		}
+	}
+}
+
+int character(graph_user temp_graf, char string[], int first_node, int second_node){
+
+	int key = security(temp_graf);
+
+	if (key == -1){
+		printf("ERROR");
+		return -5;
+	}
+
+	if (Graph_data[key].form == 0)
+	{
+		struct Graph* Graph = Graph_data[key].address_graph;
+
+		int i;
+
+		for (i = 0; i < Graph_data[key].count_edges; i++)
+		{
+			if ((first_node == Graph[i].first_node) && (second_node == Graph[i].second_node) && (Graph[i].orient != 0))
+			{
+				if (strcmp(string,"weight") == 0)
+				{
+					return Graph[i].weight;
+				}
+
+				else  if (strcmp(string,"orient") == 0)
+				{
+					return Graph[i].orient;
+				}
+
+				else return -4;
+			}
+
+			if ((first_node == Graph[i].first_node || first_node == Graph[i].second_node) && (second_node == Graph[i].second_node || second_node == Graph[i].first_node) && (Graph[i].orient == 0)){
+				if (strcmp(string,"weight") == 0)
+				{
+					return Graph[i].weight;
+				}
+
+				else  if (strcmp(string,"orient") == 0)
+				{
+					return Graph[i].orient;
+				}
+
+				else return -4;
+			}
+		}
+	}
+
+	if (Graph_data[key].form == 1)
+	{
 		
-// 	// }
-// }
+		int** Graph = Graph_data[key].address_graph;
 
-// int max(int a, int b){
-// 	if (a > b)
-// 		return a;
-// 	else return b;
-// }
+		if (strcmp(string,"weight") == 0)
+		{
+			return Graph[first_node-1][second_node-1];
+		}
 
-// graph_user add_edge_graph(graph_user temp_graf, int form, int weighting, int first_node, int second_node, int orient, int weight, int size){
-// 	if (form == 0)
-// 	{
-// 		if (weighting == 0)
-// 			struct Graph_no_weighting* Graph = (struct Graph_no_weighting*)temp_graf;
+		else if (strcmp(string,"orient") == 0)
+		{
+			if ((Graph[first_node-1][second_node-1] == 0) && (Graph[second_node-1][first_node-1] != 0))
+			{
+				return -1;
+			}
+
+			if ((Graph[second_node-1][first_node-1] == 0) && (Graph[first_node-1][second_node-1] != 0))
+			{
+				return 1;
+			}
+
+			if ((Graph[second_node-1][first_node-1] != 0) && (Graph[first_node-1][second_node-1] != 0))
+			{
+				return 0;
+			}
+		}
+
+		else return -4;
+	}
+}
+
+graph_user copy_graph(graph_user temp_graf){
+
+	int key = security(temp_graf);
+
+	if (key == -1){
+		printf("ERROR");
+	}
+
+	if (Graph_data[key].form == 0)
+	{
+		struct Graph* Graph = calloc(Graph_data[key].count_edges, sizeof(struct Graph));
+		create_new_graph(Graph_data[key].form, Graph_data[key].count_node, Graph_data[key].count_edges, Graph);
+
+		struct Graph* Graph_old = Graph_data[key].address_graph;
+
+		int i;
+		for (i = 0; i < Graph_data[key].count_edges; i++)
+		{
+			Graph[i].first_node = Graph_old[i].first_node;
+			Graph[i].second_node = Graph_old[i].second_node;
+			Graph[i].orient = Graph_old[i].orient;
+			Graph[i].weight = Graph_old[i].weight; 
+		}
+
+		return Graph;
+	}
+
+	if (Graph_data[key].form == 1){
+
+		int** Graph = (int**)calloc(Graph_data[key].count_node,sizeof(int*));
+
+		int i,j;
+		for (i = 0; i < Graph_data[key].count_node; i++)
+			Graph[i] = (int*)calloc(Graph_data[key].count_node,sizeof(int));
+
+
+		create_new_graph(Graph_data[key].form, Graph_data[key].count_node, Graph_data[key].count_edges, Graph);
+
+		int** Graph_old = Graph_data[key].address_graph;
+
+		for (i = 0; i < Graph_data[key].count_node; i++)
+		{
+			for (j = 0; j < Graph_data[key].count_node; j++){
+				Graph[i][j] = Graph_old[i][j];
+			}
+		}
+
+		return Graph;
+	}
+}
+
+char help_one_load_graph_in_file(int orient){
+
+	if (orient == -1)
+		return '<';
+	if (orient == 0)
+		return '=';
+	if (orient == 1)
+		return '>';
+}
+
+void load_graph_in_file(char* file, graph_user temp_graf){
+
+	int key = security(temp_graf);
+
+	if (key == -1){
+		printf("ERROR");
+		return;
+	}
+
+	FILE* output = fopen(file,"w");
+
+	if (Graph_data[key].form == 0)
+	{
+
+		struct Graph* Graph = Graph_data[key].address_graph;
+		fprintf(output, "%d\n", Graph_data[key].count_node);
+		int i;
+		for (i = 0; i < Graph_data[key].count_edges; i++)
+			fprintf(output, "%d%c%d %d\n", Graph[i].first_node, help_one_load_graph_in_file(Graph[i].orient), Graph[i].second_node, Graph[i].weight);
+	}
+
+	if (Graph_data[key].form == 1)
+	{
 		
-// 		if (weighting == 1)
-// 			struct Graph_weighting* Graph = (struct Graph_weighting*)temp_graf;	
+		int** Graph = copy_graph(Graph_data[key].address_graph);
 
-// 		int count_node = func_count_edges(Graph);
-// 		realloc(Graph,count_node+1);
+		key = security(Graph);
+		fprintf(output, "%d\n", Graph_data[key].count_node);
 
-// 		Graph[0].count_edges = count_node+1;
-// 		Graph[count_node].first_node = first_node;
-// 		Graph[count_node].orient = orient;
-// 		Graph[count_node].second_node = second_node;
-// 		Graph[0].count_node = count_node+1;
+		int i,j;
+		for (i = 0; i < Graph_data[key].count_node; i++)
+		{
+			for (j = 0; j < Graph_data[key].count_node; j++){
 
-// 		if (weighting == 1)
-// 			Graph[count_node].weight = weight;
-// 	}
+				if (i == j)
+					continue;
+				if ((Graph[i][j] == -7) && (Graph[j][i] == -7))
+					continue;
 
-// 	if(form == 1){
-// 		int** Graph = (int**)temp_graf;
-// 		int N = func_count_node(Graph);
+				if ((Graph[i][j] == Graph[j][i]) && (Graph[i][j] != 0))
+				{
+					fprintf(output, "%d%c%d %d\n", i+1, '=', j+1, Graph[i][j]);
+					Graph[i][j] = -7;
+					Graph[j][i] = -7;
+				}
 
- 
-// 		if (N < max(first_node,second_node))
-// 		{
-// 			size++;
-// 			realloc(Graph,size*size);
-// 		}
-
-// 		if (orient == -1){
-
-// 			if (&weight == NULL)
-// 				Graph[second_node][first_node] = 1;
-// 			else Graph[second_node][first_node] = weight;
-// 		}	
-
-// 		if (orient == 1){
-
-// 			if (&weight == NULL)
-// 				Graph[first_node][second_node] = 1;
-// 			else Graph[first_node][second_node] = weight;
-// 		}	
-
-// 		if (orient == 0)
-// 		{
-// 			if (&weight == NULL)
-// 			{
-// 				Graph[second_node][first_node] = 1;
-// 				Graph[first_node][second_node] = 1;
-// 			}
-// 			else {
-// 				Graph[second_node][first_node] = weight;
-// 				Graph[first_node][second_node] = weight;
-// 			}	
-// 		}
-// 	}
-// }
-
-// int func_edit_count_node(graph_user temp_graf, int form, int weighting){
-// 	if(form == 0){
-// 		if (weighting == 0)
-// 		{
-// 			struct Graph_no_weighting* Graph = (struct Graph_no_weighting*)temp_graf;
-// 		}
-// 		if (weighting == 1)
-// 		{
-// 			struct Graph_weighting* Graph = (struct Graph_weighting*)temp_graf;
-// 		}	
-// 			int i;
-// 			int count_node = func_count_node(Graph);
-// 			int count_edges = func_count_edges(Graph);
-
-// 			int control[count_node + 1];
-
-// 			for (i = 0; i < count_node; i++)
-// 				control[i] = -1;
-
-// 			for (i = 0; i < count_edges; i++)
-// 			{
-// 				if ((Graph[i].first_node == i+1) && (control[i] == -1))
-// 					control[i] = 1;
-// 				if ((Graph[i].second_node == i+1) && (control[i] == -1))
-// 					control[i] = 1;
-// 			}
-
-// 			for (i = 0; i < count_node; i++)
-// 			{
-// 				if (control[i] != 1)
-// 					return count_node - 1;
-// 			}
-// 			return count_node;
-// 	}
-
-// 	// if (form == 1)
-// 	// {
-		
-// 	// }
-// }
-
-// graph_user delete_edge_graph(graph_user temp_graf, int form, int weighting, int first_node, int second_node){
-// 	if (form == 0)
-// 	{
-// 		if (weighting == 0)
-// 			struct Graph_no_weighting* Graph = (struct Graph_no_weighting*)temp_graf;
-// 		if (weighting == 1)
-// 			struct Graph_weighting* Graph = (struct Graph_weighting*)temp_graf;
-
-// 		int count_edges = func_count_edges(Graph);
-
-// 		if(first_node > second_node){
-// 			int temp = second_node;
-// 			second_node = first_node;
-// 			first_node = temp;
-// 		}
-
-// 		int i;
-// 		for (i = 0; i < count_edges; i++)
-// 		{
-// 			if ( (Graph[i].first_node == first_node) && (Graph[i].second_node == second_node) )
-// 			{
-// 				Graph[i].first_node = 0;
-// 				Graph[i].second_node = 0;
-// 				Graph[i].orient = 0;
-// 				Graph[i].count_edges = 0;
-// 				Graph[i].count_node = 0;
-
-// 				if (weighting == 1)
-// 					Graph[i].weight = 0;
-// 				break;
-// 			}				
-// 		}
-
-// 		if (i == count_edges - 1)
-// 			Graph[0].count_edges--;
-		
-
-// 		Graph[i].first_node = Graph[count_edges - 1].first_node;
-// 		Graph[i].second_node = Graph[count_edges - 1].second_node;
-// 		Graph[i].orient = Graph[count_edges - 1].orient;
-// 		Graph[i].count_edges = Graph[count_edges - 1].count_edges;
-// 		Graph[i].count_node = Graph[count_edges - 1].count_node;
-
-// 		if (weighting == 1)
-// 			Graph[i].weight = Graph[count_edges - 1].weight;
-
-// 		Graph[0].count_edges = count_edges - 1;	
-
-// 		Graph[0].count_node = func_edit_count_node(Graph,form,weighting);
-// 	}
-
-// 	// if (form == 1)
-// 	// {
-		
-// 	// }
-// }	
+				if ((Graph[i][j] > 0) && (Graph[j][i] == 0))
+				{
+					fprintf(output, "%d%c%d %d\n", i+1, '>', j+1, Graph[i][j]);
+					Graph[i][j] = -7;
+					Graph[j][i] = -7;					
+				}
+			}
+		}
+		delete_graph(Graph);
+	}
+}
