@@ -67,6 +67,11 @@ int reader_help_one(FILE* file, int* orient, int* weight){
 	if (c == ' ')
 		*weight = reader_help_one(file,0,0);
 
+	else{
+		printf("MUSORKA\n");
+		return -10;
+	} 
+
 	return number;
 }
 
@@ -74,6 +79,8 @@ graph_user reader_graph_edges(FILE* file){
 
 	int weight = 0, orient = 0, count_node = reader_help_one(file,0,0);
 	int c, count_edges = 0;
+	if (count_node == -10)
+		return NULL;
 
 	int place = ftell(file);
 	fseek(file,0,SEEK_SET);
@@ -98,6 +105,12 @@ graph_user reader_graph_edges(FILE* file){
 		t1 = reader_help_one(file, &orient,0);
 		t2 = reader_help_one(file, 0,&weight);
 
+		if(t1 == -10)
+			return NULL;
+
+		if(t2 == -10)
+			return NULL;
+
 		if (weight == 0)
 			weight += 1;
 
@@ -115,6 +128,9 @@ graph_user reader_graph_edges(FILE* file){
 graph_user reader_graph_matrix(FILE* file){
 	int weight = 0, orient = 0, count_node = reader_help_one(file,0,0);
 	int c, count_edges = 0;
+
+	if(count_node == -10)
+		return NULL;
 
 	int place = ftell(file);
 	fseek(file,0,SEEK_SET);
@@ -142,6 +158,11 @@ graph_user reader_graph_matrix(FILE* file){
 	{
 		int t1 = reader_help_one(file, &orient,&weight) - 1;
 		int t2 = reader_help_one(file, &orient,&weight) - 1;
+
+		if(t1 == -10)
+			return NULL;	
+		if(t2 == -10)
+			return NULL;		
 
 		if (orient == -1){
 
