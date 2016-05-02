@@ -3,43 +3,61 @@
 
 void main(int argc, char* argv[])
 {
-	FILE* fileik; 
-	fileik = fopen(argv[1], "rb");
+	graph_user graph1;
+	graph_user graph2;
+	graph_user graph3; 
+	graph_user graph4; 
 
-	graph_user graph,graf;
+	char* text = argv[1];
 
-	if( NULL == fileik ) { 
-		printf( "Cannot open file\n" ); 
-	} 
+	graph1 = reader_graph_edges(text); 
+	graph2 = reader_graph_matrix(text); 
 
-	graph_user graphik1 = make_graph(0,15); // 1
-	graph_user graphik2 = make_graph(1,18); // 1
+	graph3 = copy_graph(graph1); 
+	graph4 = copy_graph(graph2); 
 
-	add_edge_graph(graphik1, 1, 2, 0, 5); // 2
-	add_edge_graph(graphik2, 1, 2, 1, 2); // 2
+	add_edge_graph(graph3, 1, 5, 1, 5); 
+	
+	delete_edge(graph4, 1, 3); 
 
-	delete_edge(graphik1, 1, 2); // 3
-	delete_edge(graphik2, 1, 2); // 3
+	load_graph_in_file("D:/projects/1.txt", graph1); 
+	load_graph_in_file("D:/projects/2.txt", graph2); 
+	load_graph_in_file("D:/projects/3.txt", graph3); 
+	load_graph_in_file("D:/projects/4.txt", graph4); 
 
-	int k1 = existence(graphik1, 1, 2); // 4
-	int k2 = existence(graphik2, 2, 1);	// 4
-		printf("%d\n", k1);
-		printf("%d\n", k2);
+	graph_user graph6 = make_graph(1,3); 
+//	// add_edge_graph(graph6, 1, 2, 1, 5); 
+//	// add_edge_graph(graph6, 1, 3, 0, 7); 
+//	// add_edge_graph(graph6, 2, 3, -1, 2); 
 
-	int l1 = character(graphik1, "weight", 1, 2); // 5
-	int l2 = character(graphik2, "weight", 1, 2); // 5
-		printf("%d\n", l1);
-		printf("%d\n", l2);
+	// load_graph_in_file("D:/projects/5.txt", graph6); 
 
-	graph_user copy_graphik1 =  copy_graph(graphik1); // 6
-	graph_user copy_graphik2 =  copy_graph(graphik2); // 6
+	// graph_user graph7 = reader_graph_edges("D:/projects/5.txt"); 
 
-	delete_graph(graphik1); // 7
-	delete_graph(graphik2); // 7
+	// load_graph_in_file("D:/projects/6.txt", graph7); 
 
-	graph = reader_graph_edges(fileik); // 8
-	graf = reader_graph_matrix(fileik); // 8
+// 	int i,g;
 
-	load_graph_in_file("D:/projects/1.txt", graph); // 9
-	load_graph_in_file("D:/projects/2.txt", graf); // 9
+// 	for (i = 1; i <= func_count_node(graph6); i++)
+// 	{
+// 		for (g = 1; g <= func_count_node(graph6); g++)
+// 		{
+// 			if (existence(graph6, i, g) != -3)
+// 			{
+// 				printf("%d_%d\n", i,g);
+// 			}
+// 		}
+// 	}
+// printf("\n");
+// 	for (i = 1; i <= func_count_node(graph7); i++)
+// 	{
+// 		for (g = 1; g <= func_count_node(graph7); g++)
+// 		{
+// 			if (existence(graph7, i, g) != -3)
+// 			{
+// 				printf("%d_%d\n", i,g);
+// 			}
+// 		}
+
+// 	}
 }	
