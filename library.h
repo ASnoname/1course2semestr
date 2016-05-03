@@ -6,6 +6,7 @@ typedef void* graph_user;
 graph_user reader_graph_edges(FILE* file);
 graph_user reader_graph_matrix(FILE* file);
 int existence(graph_user temp_graf, int first_node, int second_node);
+void delete_edge(graph_user temp_graf, int first_node, int second_node);
 void delete_graph(graph_user graph);
 int func_count_edges(graph_user temp_graf);
 int func_count_node(graph_user temp_graf);
