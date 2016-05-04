@@ -4,12 +4,12 @@
 int maxflow(graph_user graphik, int first_node, int second_node){
 
 	graph_user graph = copy_graph(graphik);
+	int count_node = func_count_node(graph);
+	int metka = count_node; 
 
-	while (1){
+	while (metka > 0){
 
-		int nezametno = 0; 
-		int count_node = func_count_node(graph);
-
+		metka = count_node;
 		int i,k;
 		int line[count_node];
 		for (i = 0; i < count_node; i++)
@@ -43,6 +43,11 @@ int maxflow(graph_user graphik, int first_node, int second_node){
 			}
 
 			if (!h){
+				if (var_temp == 0){
+					metka = -1;
+					break;
+				}
+
 				i = line[var_temp - back - 1];
 				back++;
 				if (i == first_node)
@@ -52,16 +57,13 @@ int maxflow(graph_user graphik, int first_node, int second_node){
 				}
 				g = 1;
 			}	
-			nezametno++;
-			if ((i != second_node) && (nezametno == count_node-1)){
-				nezametno = 15999;
-				break;				
-			}
 
-		} while(i != second_node);
-		
+			metka--;
+
+		} while (i != second_node);
+
 		i = 0; int min = 1024;
-		while ((line[i] != -1) && (i != count_node-1)){
+		while (i < count_node - metka){
 
 			int l = character(graph, "weight", line[i], line[i+1]);
 
@@ -72,16 +74,20 @@ int maxflow(graph_user graphik, int first_node, int second_node){
 		}
 
 		i = 0;
-		while ((line[i] != -1) && (i != count_node-1)){
+		while (i < count_node - metka){
 
 			int l = character(graph, "weight", line[i], line[i+1]);
+			int orient = existence(graph, line[i],line[i+1]);
 
 			delete_edge(graph, line[i], line[i+1]);  
-			add_edge_graph(graph, line[i], line[i+1], existence(graph, line[i],line[i+1]), l - min);
+			add_edge_graph(graph, line[i], line[i+1], orient, l - min);
 			i++;
 		}
-	
-		if (nezametno == 15999)
+
+		for (i = 0; i < count_node; ++i)
+			printf("%d\n", line[i]);
+
+		if (metka < 0)
 			break;
 	}
 
@@ -97,6 +103,7 @@ int maxflow(graph_user graphik, int first_node, int second_node){
 			potok += a;			
 		}
 
+	delete_graph(graph);
 
 	return potok;	
 }
@@ -108,20 +115,15 @@ void main(int argc, char* argv[])
 	graph_user graph = reader_graph_matrix(file);
 
 	int first_node,second_node;
-	// while(1){
+	while(1){
 
-	// 	scanf("%d", &first_node);
+		scanf("%d", &first_node);
 
-	// 	if (first_node == 0)
-	// 		break;
+		if (first_node == 0)
+			break;
 
-	// 	scanf("%d", &second_node);	
+		scanf("%d", &second_node);	
 
-	// 	int potok = maxflow(graphik,first_node,second_node);
-
-	// 	if (potok == -6)
-	// 		continue;
-	// 	printf("%d\n", potok);
-	// }
-	printf("%d", maxflow(graph,1,14));
+		printf("%d\n", maxflow(graph,first_node,second_node));
+	}
 }
