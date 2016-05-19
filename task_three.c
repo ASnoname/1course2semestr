@@ -1,33 +1,17 @@
 #include "D:\proga\library.h"
 #include <stdio.h>
 
-int breaking(graph_user graph, int first_node, int second_node){
-
-	int i;
-	for (i = 0; i < func_count_node(graph); i++){
-		if (existence(graph,i+1,second_node) == 1){
-
-			if (i+1 == first_node)
-				return 1;
-
-			return breaking(graph,first_node,i+1);	
-		}
-	}
-	return 0;
-}
-
 int maxflow(graph_user graphik, int first_node, int second_node){
 
 	graph_user graph = copy_graph(graphik);
 	int count_node = func_count_node(graph);
 	int metka = 1; 
 	int i,k;
-	int line[count_node+1];
-	line[count_node] = second_node;
-	int yes[count_node];
+	int line[count_node];
+	int yes[count_node]; int p = 0;
 
 	while (metka != 0){
-
+	
 		for (i = 0; i < count_node; i++)
 			line[i] = -1;
 
@@ -36,8 +20,8 @@ int maxflow(graph_user graphik, int first_node, int second_node){
 
 		yes[first_node-1] = 1; line[0] = first_node; int var_temp = 0;
 
-		i = first_node; int h; int back = 0; int g = 0;
-		int lmetka = 0;
+		i = first_node; int h;
+		int lmetka = 0; int counter = 0;
 
 		do{ 
 			h = 0;
@@ -46,51 +30,39 @@ int maxflow(graph_user graphik, int first_node, int second_node){
 				if ((existence(graph,i,k) == 1) && (yes[k-1] == 0) && (character(graph, "weight", i, k) > 0)){
 					yes[k-1] = 1;
 
-					if (g == 0)
-						var_temp++;
-
-					if(g == 1)
-						line[++var_temp] = k;
-					else line[var_temp + back] = k;		
+					line[++var_temp] = k;		
 
 					i = k;
 					h = 1; 
-					g = 0;
-
+					counter = 0;
 					break;
 				}
 			}
 
 			if (!h){
-				if (var_temp == 0){
+
+				if ((var_temp == 0) && (line[1] == -1)){
 					metka = 0;
 					break;
 				}
 
-				i = line[var_temp - back - 1];
-
-				back++;
-				if (i == first_node)
-				{
-					var_temp = 0;
-					back = 0;
-
-					if (breaking(graph,first_node,second_node) == 0){
-
-						metka = 0;
-						break;
-					}
+				if (counter == 1){
+					metka = 0;
+					break;
 				}
 
-				g = 1;
+				i = line[--var_temp];
+
+				if (i == first_node)
+					counter++;
 			}	
 
 		} while (i != second_node); 
 
-		for (i = 0; i < count_node; i++)
-			printf("%d\n", line[i]);
-		
-		for (i = 0; i < count_node; i++)
+		if (metka == 0)
+			break;
+
+		for (i = 1; i < count_node; i++)
 			if (line[i] != -1)
 				lmetka++;
 
@@ -124,18 +96,15 @@ int maxflow(graph_user graphik, int first_node, int second_node){
 			}	
 			else
 				add_edge_graph(graph, line[i+1], line[i], 1, min);
-							
+						
 			i++;
 		}
-
-		if (metka == 0)
-			break;
 	}
 
 	int potok = 0;
-	for (i = 0; i < count_node; i++)	
-		if (existence(graph,second_node,i+1) == 1)
-			potok += character(graph, "weight", second_node, i+1);	
+	for (i = 1; i < count_node; i++)	
+		if (existence(graphik,i,second_node) == 1)
+			potok += character(graphik, "weight", i, second_node) - character(graph, "weight", i, second_node);		
 
 	delete_graph(graph);
 
@@ -146,7 +115,7 @@ void main(int argc, char* argv[])
 {
 	char* file = argv[1]; 
 
-	graph_user graph = reader_graph_matrix(file);
+	graph_user graphik = reader_graph_matrix(file);
 
 	int first_node,second_node;
 	while(1){
@@ -161,6 +130,8 @@ void main(int argc, char* argv[])
 		if (second_node == 0)
 			break;
 
-		printf("%d\n", maxflow(graph,first_node,second_node));
+		printf("%d\n", maxflow(graphik,first_node,second_node));
 	}
+
+	delete_graph(graphik);
 }
