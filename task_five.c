@@ -1,29 +1,25 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "D:\proga\library2.h"
-
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#define ACCURACY 4
+#include "library2.h"
 
 int proverka(char* stroka){
 
-	if ((stroka[0] < '0') || (stroka[0] > '9') && (stroka[0] != '-'))
+	if (((stroka[0] < '0') || (stroka[0] > '9')) && (stroka[0] != '-'))
 		return -1;
 
 	if ((stroka[0] == '0') && (stroka[1] != ','))
 		return -1;
-
+	
 	if (((stroka[0] == '-') || (stroka[0] == '+')) && (stroka[1] == ','))
+		return -1;
+	
+	if (((stroka[0] == '-') || (stroka[0] == '+')) && (stroka[1] == '0') && (stroka[2] != ','))
 		return -1;
 
 	int i; int k = 0;
 	for (i = 1; i < strlen(stroka); i++)
 	{
-		if ((stroka[i] < '0') || (stroka[i] > '9') && (stroka[i] != ','))
+		if (((stroka[i] < '0') || (stroka[i] > '9')) && (stroka[i] != ','))
 			return -1;	
-
+		
 		if (stroka[i] == ',')
 			k++;
 
@@ -31,10 +27,17 @@ int proverka(char* stroka){
 			return -1;	
 	}
 
-	return 0;
+	return 0;//+++
 }
 
-void reader(char* tempstroka, long_number* structure){
+void write_str(long_number* prnum){
+
+	int d;
+	for (d = 0; d < prnum->length; d++)
+		printf("%d\n", prnum->number[d]);
+}
+
+void reader(char* tempstroka, long_number* structure){//+++
 
 	int h = 0;
 	if (tempstroka[0] == '-'){
@@ -50,72 +53,30 @@ void reader(char* tempstroka, long_number* structure){
 	structure->number = calloc(strlen(tempstroka)-1-h,sizeof(int));
 
 	int j;
-	for (j = 0; j < i-h; j++)
+	for (j = 0; j < structure->comma; j++)
 		structure->number[j] = tempstroka[j+h] - 48;
 
-	for (j = i-h; j < strlen(tempstroka)-1-h; j++)
+	for (j = structure->comma; j < strlen(tempstroka)-1-h; j++)
 		structure->number[j] = tempstroka[j+1+h] - 48;
 
 	structure->length = strlen(tempstroka)-1-h;
 }
 
-void first_or_second(long_number* tempone, long_number* temptwo, long_number** first, long_number** second){
+int maxdiff(int a, int b){
 
-	if(tempone->comma > temptwo->comma){
-
-		*first = tempone;
-		*second = temptwo;
-	}
-	else if (tempone->comma < temptwo->comma)
-	{
-		*first = temptwo;
-		*second = tempone;
-	}
-	else if (tempone->comma == temptwo->comma)
-	{
-		int prefer;
-		if (tempone->length >= temptwo->length) 
-			prefer = 1;
-		else prefer = 2;
-
-		int i;
-		for (i = 0; i < MIN(tempone->length,temptwo->length); i++)
-		{
-			if (tempone->number[i] > temptwo->number[i]){
-
-				*first = tempone;
-				*second = temptwo;
-				return;
-			}
-			else if (tempone->number[i] < temptwo->number[i]){
-
-				*first = temptwo;
-				*second = tempone;
-				return;
-			}
-		}
-
-		if (prefer == 2)
-		{
-			*first = temptwo;
-			*second = tempone;
-			return;
-		}
-		else 
-		{
-			*first = tempone;
-			*second = temptwo;
-			return;
-		}
-	}
+	if (a >= b)
+		return 1;
+	else return 0;
 }
 
-void alignment(long_number* first, long_number* second){
+void alignment(long_number* first, long_number* second){//+++
 
-	int diff = first->comma - second->comma;
+	int max = maxdiff(first->comma,second->comma);
 
-	if (diff > 0)
+	if (max == 1)
 	{
+		int diff = first->comma - second->comma;
+		second->comma = first->comma;
 		second->number = realloc(second->number,(second->length + diff)*sizeof(int));
 		int i;
 
@@ -127,11 +88,12 @@ void alignment(long_number* first, long_number* second){
 		for (i = 0; i < diff; i++)
 			second->number[i] = 0;
 	}
-	else if (diff < 0)
-	{
+	else {
+		int diff = second->comma - first->comma;
+		first->comma = second->comma;
 		first->number = realloc(first->number,(first->length + diff)*sizeof(int));
-
 		int i;
+
 		for (i = first->length-1; i >= 0; i--)
 			first->number[i+diff] = first->number[i];
 
@@ -141,231 +103,478 @@ void alignment(long_number* first, long_number* second){
 			first->number[i] = 0;
 	}
 
-	diff = first->length - second->length;
+	int diff = first->length - second->length;
 
 	if (diff > 0)
 	{
 		second->number = realloc(second->number,sizeof(int)*(second->length + diff));
 		second->length += diff;
-		int i;
-		for (i = 0; i < diff; i++)
+		int i;		
+		for (i = second->length - diff; i < second->length; i++)
 			second->number[i] = 0;
 	}
 	else if (diff < 0)
 	{
-		first->length += diff;
-		first->number = realloc(first->number,sizeof(int)*(first->length + diff));
+		first->length -= diff;
+		first->number = realloc(first->number,sizeof(int)*(first->length - diff));
 		int i;
-		for (i = 0; i < diff; i++)
+		for (i = first->length + diff; i < first->length; i++)
 			first->number[i] = 0;
 	}
 }
 
-void numeral(long_number* first, long_number* second, int pointer, long_number* result, int i){
-
-	int p = first->number[i] + pointer*second->number[i];
-	if (p < 10)
-		result->number[i+1] += p;
-	else{
-
-		result->number[i+1] += p-10; 
-		result->number[i]++;
-	}
-}
-
-void cleaner(long_number* result,int i){
+void cleaner(long_number* result,int i){//+++
 
 	if (result->number[i] < 0)
 	{
 		result->number[i] += 10; 
 		result->number[i-1] -= 1;
 	}
+
+	else if (result->number[i] > 9)
+	{
+		result->number[i] %= 10;
+		result->number[i-1]++;
+	}
 }
 
-int* summa(long_number* first, long_number* second, int pointer, long_number* result){
+char* int_to_string(long_number* result){
+
+	int znachek = 0;
+	if(result->znak == '-')
+		znachek = 1;
+
+	if ((result->number[0] == 0) && (result->number[1] == 0) && (result->comma = 2))
+	{
+		char* strochka = calloc((result->length + znachek),sizeof(char));
+
+		int i = 0;
+		if(znachek){
+			strochka[i] = '-';
+			i++;
+		}
+
+		strochka[i] = '0';
+		i++;
+		strochka[i] = ',';
+		i++;
+
+		int j = 2;
+		while(j != result->length){
+
+			strochka[i] = result->number[j] + 48;
+			i++;
+			j++;
+		}	
+
+		return strochka;
+	}
+
+	else if ((result->number[0] == 0) && (result->number[1] != 0))
+	{
+			char* strochka = calloc((result->length + znachek),sizeof(char));
+
+			int i = 0;
+			if(znachek){
+				strochka[i] = '-';
+				i++;
+			}
+
+			int j;
+			for(j = 1; j < result->comma; j++){
+
+				strochka[i] = result->number[j]+48;
+				i++;
+			}
+
+			strochka[i] = ',';
+			i++;
+
+			while(j != result->length){
+
+				strochka[i] = result->number[j] + 48;
+				i++;
+				j++;
+			}	
+
+			return strochka;
+	}
+
+	else if (result->number[0] != 0)
+	{
+		char* strochka = calloc((result->length+znachek+1),sizeof(char));
+		
+		int i = 0;
+		if(znachek){
+			strochka[i] = '-';
+			i++;
+		}
+
+		int j;
+		for(j = 0; j < result->comma; j++){
+
+			strochka[i] = result->number[j]+48;
+		
+			i++;
+		}
+
+		strochka[i] = ',';
+		i++;
+
+		while(j != result->length){
+
+			strochka[i] = result->number[j] + 48;
+							
+			i++;
+			j++;
+		}	
+		return strochka;
+	}
+}	
+
+// long_number* rounding(long_number** chiselka, int after_point){
+	
+// 	int after = (*chiselka)->length - (*chiselka)->comma;
+// 	int diff = after_point - after;
+
+// 	if(diff > 0){
+// 		(*chiselka)->number = realloc(((*chiselka)->number,(*chiselka)->length+diff)*sizeof(int));
+// 		int i;
+// 		for(i = (*chiselka)->length; i < (*chiselka)->length + diff; i++)
+// 			(*chiselka)->number[i] = 0;
+// 		(*chiselka)->length += diff;
+// 		return (*chiselka);
+// 	}
+
+// 	else if(diff < 0){
+// 		if((*chiselka)->number[comma + after_point+1] >= 4)
+// 			(*chiselka)->number[comma + after_point]++;
+// 		(*chiselka)->number = realloc((*chiselka)->number,((*chiselka)->number+diff)*sizeof(int));
+// 	}
+
+// 	return (*chiselka);
+// }
+
+char* summa(long_number* first, long_number* second, char operation){
 
 	alignment(first, second);
-	result->number = calloc(first->length+1,sizeof(int));
+
+	long_number* result = calloc(1,sizeof(long_number));
+
+	result->number = calloc(first->length+1,sizeof(int));  
 	result->length = first->length+1;
+
+	int joys = 1;
+	if (second->znak == '-')
+		joys = -1;
+
+	int joyf = 1;
+	if (first->znak == '-')
+		joyf = -1;
+
+	if (operation == '-')
+		joys *= -1;
 
 	int i;
 	for (i = first->length-1; i >= 0; i--)
-		numeral(first,second,pointer,result,i);
-
-	for (i = result->length-1; i >= 0 ; i--)
+		result->number[i+1] = joyf*first->number[i] + joys*second->number[i];
+	
+	for (i = result->length-1; i > 0 ; i--)
 		cleaner(result,i);
+
+	int k = 0;
+	while(result->number[k] == 0)
+		k++;
+
+	if (k != result->length+1){	
+		if(result->number[k] < 0){
+		if(result->znak == '-')
+			result->znak = '+';
+		else result->znak = '-';
+
+		while(k != result->length){ 
+			result->number[k] *= -1;
+			k++;
+		}
+	}
+}
+
+	for (i = result->length-1; i > 0 ; i--)
+		cleaner(result,i);
+
 
 	result->comma = first->comma + 1;
 
-	return result->number;
-}
-
-char* int_to_string(long_number* result, int pointer){
-
-	char* strochka = calloc(result->length+1+pointer,sizeof(char));
-	int i = 0, j = 0;
-	if(result->znak == '-'){
-		strochka[i] = '-';
-		i++;
-	}
-
-	if(result->number[0] == 0)
-		j++;
-
-	while(j != result->comma){
-		strochka[i] = result->number[j] + 48;
-		i++;
-		j++;
-	}
-
-	strochka[i] = ',';
-	i++;
-
-	while(j != result->length){
-		strochka[i] = result->number[j] + 48;
-		i++;
-		j++;
-	}	
-
-	return strochka;
-}	
-
-char* fintushami(long_number* first, long_number* second, char operation){
-
-	long_number* result = calloc(1,sizeof(long_number));
-	int pointer = 0;
-
-	if ((first->znak == '-') && (operation == '+') && (second->znak == '-')){
-		result->number = summa(first,second,1,result);
-		result->znak = '-';
-	}	
-	else if ((first->znak == '-') && (operation == '-') && (second->znak == '+')){
-		result->number = summa(first,second,1,result);
-		result->znak = '-';
-	}
-	else if ((first->znak == '-') && (operation == '+') && (second->znak == '+')){
-		pointer = 1;
-		result->number = summa(first,second,-1,result);
-		result->znak = '-';
-	}
-	else if ((first->znak == '-') && (operation == '-') && (second->znak == '-')){
-		pointer = 1;
-		result->number = summa(first,second,-1,result);
-		result->znak = '-';
-	}
-	else if ((first->znak == '+') && (operation == '+') && (second->znak == '-')){
-		pointer = 1;
-		result->number = summa(first,second,-1,result);	
-		result->znak = '+';
-	}
-	else if ((first->znak == '+') && (operation == '-') && (second->znak == '+')){
-		pointer = 1;
-		result->number = summa(first,second,-1,result);
-		result->znak = '+';
-	}
-	else if ((first->znak == '+') && (operation == '+') && (second->znak == '+')){
-		result->number = summa(first,second,1, result);
-		result->znak = '+';
-	}
-	else if ((first->znak == '+') && (operation == '-') && (second->znak == '-')){
-		result->number = summa(first,second,1,result);	
-		result->znak = '+';
-	}	
-
-	return int_to_string(result,pointer);						
+	return int_to_string(result);
 }
 
 void numeral_multi(long_number* first,long_number* second, long_number* result, int i, int h){
 
 	int j; int p;
-	for (j = first->length-1; j >= 0; j--)
+	for (j = first->length; j > 0; j--)
 	{
-		p = first->number[j] * second->number[i];
+		p = first->number[j-1] * second->number[i];
 
-		result->number[j-h+1] += p;
+		result->number[j+i] += p;
 	}
 }
 
 void cleaner_multi(long_number* result, int i){
 
-	if (result->number[i] > 10)
+	if (result->number[i] >= 10)
 	{
 		result->number[i-1] += result->number[i] / 10;
 		result->number[i] %= 10;
 	}
 }
 
-char* multiplication(long_number* first,long_number* second){
+char* multiplication(long_number* tempone,long_number* temptwo, int accuracy){
 
 	int i = 0; 
 	int j = 0; int h = 0;
 
 	long_number* result = calloc(1,sizeof(long_number));
-	result->number = calloc(first->length+1,sizeof(int));
-	result->length = first->length+1;
-	result->comma = (first->length + second->length) - (first->comma + second->comma);
-
-	if (first->znak == second->znak)
+	result->number = calloc((tempone->length+temptwo->length),sizeof(int));
+	
+	if (tempone->znak == temptwo->znak)
 		result->znak = '+';
-	if (first->znak != second->znak)
+	if (tempone->znak != temptwo->znak)
 		result->znak = '-';
 	
-	for (i = second->length-1; i >= 0; i-- ,h++)
-		numeral_multi(first,second, result, i,h);
+	for (i = temptwo->length; i > 0; i-- ,h++)
+		numeral_multi(tempone,temptwo, result, i-1,h);
 
-	for (i = result->length-1; i > 0; i--) 
+	for (i = tempone->length+temptwo->length-1; i >= 0; i--) 
 		cleaner_multi(result,i);
 
-	return int_to_string(result, (result->znak == '-'));
+	result->comma = tempone->comma + temptwo->comma;
+
+	result->length = tempone->length+temptwo->length;
+
+	return int_to_string(result);
 }
 
-char* division(long_number* first,long_number* second){
+void point_move(long_number** tempone, long_number** temptwo){
+	
+	int after_point_one = (*tempone)->length - (*tempone)->comma;
+	int after_point_two = (*temptwo)->length - (*temptwo)->comma;
 
-	int i = 0; 
-	int j = 0; int h = 0;
+	int deff = after_point_one - after_point_two;
 
+	if(deff > 0){
+		(*temptwo)->number = realloc((*temptwo)->number,((*temptwo)->length + deff)*sizeof(int));
+		int i = (*temptwo)->length;
+		(*temptwo)->length += deff;
+		while(i != (*temptwo)->length){
+			(*temptwo)->number[i] = 0;
+			i++;
+		}
+	}
+
+	if(deff < 0){
+		(*tempone)->number = realloc((*tempone)->number,((*tempone)->length - deff)*sizeof(int));
+		int i = (*tempone)->length;
+		(*tempone)->length -= deff;
+		while(i != (*tempone)->length){
+			(*tempone)->number[i] = 0;
+			i++;
+		}
+	}
+}
+
+int compare(long_number* tempone, long_number* temptwo){
+
+	int i;
+	int deff = temptwo->length - tempone->length;
+
+	if(deff == 0){
+		for (i = 0; i < tempone->length; i++)
+			if (tempone->number[i] < temptwo->number[i])
+				return 1;
+
+		return 0;
+	}	
+	else if (deff > 0)
+		return 1;
+	else if(deff < 0)
+		return 2;
+}
+
+long_number* mult_long_short(long_number* temptwo, int small){
+	int i;
 	long_number* result = calloc(1,sizeof(long_number));
+	result->number = calloc(temptwo->length+2,sizeof(int));
+	result->length = temptwo->length+2;
+	for (i = temptwo->length; i >= 0; i--)
+		result->number[i+1] = temptwo->number[i]*small; // metka
+	for(i = result->length; i > 0; i--){
+		if(result->number[i] > 9){
+			result->number[i-1] += result->number[i]/10;
+			result->number[i] %= 10;
+		}
+	}
 
-	if (first->znak == second->znak)
-		result->znak = '+';
-	if (first->znak != second->znak)
-		result->znak = '-';
-	
-	result->number = calloc(ACCURACY+(first->znak == '-')+1,sizeof(int));
-	result->length = ACCURACY + (first->znak == '-')+1;
-	result->comma = MAX(first->length - first->comma, second->length - second->comma);
+	if(result->number[0] == 0){
+		for(i = 0; i < result->length; i++)
+			result->number[i] = result->number[i+1];
+		result->length -=1;
+	result->number = realloc(result->number,(result->length)*sizeof(int));
+	} 
+	result->comma = result->length - 1;
 
-	
-
-	return "hh";
+	return result;
 }
 
-char* lib(char* firstlongnumber, char* secondlongnumber, char operation){
+long_number* change_cifra(long_number* cut_number, char** result, long_number* temptwo, int* i){
 
-	// int t1 = proverka(firstlongnumber); 
-	// if (t1 == -1) 
-	// 	return "error";
-	// int t2 = proverka(secondlongnumber); 
-	// if (t2 == -1) 
-	// 	return "error";
+	int cifra = 1;
+	long_number* check = mult_long_short(temptwo, cifra);
 
-	long_number* first = calloc(1,sizeof(long_number));
-	long_number* second = calloc(1,sizeof(long_number));
+	// write_str(check);
+
+	while ((compare(check, cut_number) != 2) && (cifra > 0)){ 
+
+		cifra++;
+
+		check = mult_long_short(temptwo, cifra);
+	}
+	(*result)[(*i)] = cifra+48;
+	(*i)++;
+	return check;
+}
+
+void delenie(char** result,	int result_after_point, int point_flag, long_number* tempone, long_number* temptwo, int* i){
+	
+	long_number* cut_number = calloc(1,sizeof(long_number));
+	cut_number->number = calloc(temptwo->length,sizeof(int));
+	cut_number->length = temptwo->length;
+
+	long_number* multik = calloc(1,sizeof(long_number));
+	multik->number = calloc(temptwo->length,sizeof(int));
+	multik->length = temptwo->length;
+
+	cut_number->number = realloc(tempone->number,(temptwo->length+2)*sizeof(int));   	
+
+	cut_number->number[cut_number->length] = 0; 
+	cut_number->number[cut_number->length+1] = 0; 
+
+	cut_number->length++; 
+	cut_number->comma = cut_number->length - 1;
+
+	// while(result_after_point != ACCURACY){
+	// printf("%s\n",summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-')); 
+
+
+
+		reader(summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-'),cut_number);
+
+
+
+	// }
+}
+
+char* division(long_number* tempone,long_number* temptwo, int accuracy){
+
+	point_move(&tempone, &temptwo); 
+
+	int point_flag = 0;
+	int znak_flag = 0;
+	int noliki = temptwo->length - tempone->length;
+
+	if(noliki > accuracy+1)
+		noliki = accuracy+1;
+	
+	char* result = calloc(MAX(tempone->length,temptwo->length) + accuracy,sizeof(char));
+
+	int i;
+	for(i = 0; i < (MAX(tempone->length,temptwo->length) + accuracy); i++)
+		result[i] = '#';
+
+	i = 0;
+	if(tempone->znak != temptwo->znak){
+		result[i] = '-';
+		znak_flag++;
+		i++;
+	}
+
+	if(noliki > 0){
+		result[i] = '0';
+		i++;
+		result[i] = ',';
+		i++;
+		point_flag = 1;
+		noliki--;
+		int j = 0;
+		while (j < noliki){
+			result[i] = '0';
+			j++;
+			i++;
+		} 
+
+		if(j == accuracy+1){
+			// char* resultik = calloc(j+point_flag+znak_flag+1,sizeof(char));
+			// int m;
+			// for(m = 0; m < j+point_flag+znak_flag+1; m++)
+			// 	resultik[m] = result[m];
+
+			return realloc(result,(j+point_flag+znak_flag+1)*sizeof(char));
+		}
+
+		tempone->number = realloc(tempone->number,(tempone->length + noliki)*sizeof(int));
+
+		int k;
+		for(k = tempone->length; k < noliki + tempone->length; k++)
+			tempone->number[k] = 0;
+
+		tempone->length += noliki;
+	} 
+
+	int result_after_point = 0;
+
+	if (noliki < 0)
+		result_after_point = -1 * noliki;
+	else result_after_point = noliki;
+
+	int p = compare(tempone, temptwo);
+
+	if(p == 1){
+		result[i] = '0';
+		result_after_point++;
+		tempone->number = realloc(tempone->number,(tempone->length + 1)*sizeof(int));
+
+		tempone->number[tempone->length] = 0;
+		tempone->length++;
+	}
+
+	delenie(&result,result_after_point,point_flag,tempone,temptwo,&i);
+
+	return "123123";
+}
+char* lib(char* firstlongnumber, char* secondlongnumber, char operation, int accuracy){
+
+	int t1 = proverka(firstlongnumber); 
+	if (t1 == -1) 
+		return "error";
+	int t2 = proverka(secondlongnumber); 
+	if (t2 == -1) 
+		return "error";
+	if ((operation != '*') && (operation != '+') && (operation != '-') && (operation != '/'))
+		return "error";
 
 	long_number* tempone = calloc(1,sizeof(long_number));
 	long_number* temptwo = calloc(1,sizeof(long_number));
 
-	reader(firstlongnumber,tempone);
-	reader(secondlongnumber,temptwo);
-
-	first_or_second(tempone, temptwo, &first, &second);
-
-	if ((operation == '+') || (operation == '-'))
-		return fintushami(first,second,operation);
+	reader(firstlongnumber,tempone);  
+	reader(secondlongnumber,temptwo); 
 
 	if (operation == '*')
-		return multiplication(first,second);
+		return multiplication(tempone,temptwo,accuracy);
+
+	if ((operation == '+') || (operation == '-')){
+		char* result = summa(tempone,temptwo,operation);
+		return result;
+	}	
 
 	if (operation == '/')
-		return division(first,second);
+		return division(tempone,temptwo,accuracy);
 }
