@@ -232,27 +232,34 @@ char* int_to_string(long_number* result){
 	}
 }	
 
-// long_number* rounding(long_number** chiselka, int after_point){
+// void clean_nuls(long_number** chiselka){
+// 	int i = (*chiselka)->length;
+// 	while((i > ((*chiselka)->comma))&&((*chiselka)->number[i-1] == 0))
+// 		i--;
+
+// 	(*chiselka)->length = i;
+// 	(*chiselka)->number = realloc((*chiselka)->number,(*chiselka)->length*sizeof(int));
+// }
+
+// void rounding(long_number** chiselka, int after_point){
 	
 // 	int after = (*chiselka)->length - (*chiselka)->comma;
 // 	int diff = after_point - after;
 
-// 	if(diff > 0){
-// 		(*chiselka)->number = realloc(((*chiselka)->number,(*chiselka)->length+diff)*sizeof(int));
+// 	if(diff > 0){//если занков после запятой меньше чем надо
+// 		(*chiselka)->number = realloc((*chiselka)->number,((*chiselka)->length+diff)*sizeof(int));
 // 		int i;
 // 		for(i = (*chiselka)->length; i < (*chiselka)->length + diff; i++)
 // 			(*chiselka)->number[i] = 0;
 // 		(*chiselka)->length += diff;
-// 		return (*chiselka);
 // 	}
 
-// 	else if(diff < 0){
-// 		if((*chiselka)->number[comma + after_point+1] >= 4)
-// 			(*chiselka)->number[comma + after_point]++;
-// 		(*chiselka)->number = realloc((*chiselka)->number,((*chiselka)->number+diff)*sizeof(int));
+// 	else if(diff < 0){//после запятой больше чем надо
+// 		if((*chiselka)->number[(*chiselka)->comma + after_point] >= 4)
+// 			(*chiselka)->number[(*chiselka)->comma + after_point-1]++;
+// 		(*chiselka)->number = realloc((*chiselka)->number,((*chiselka)->length+diff)*sizeof(int));
+// 		(*chiselka)->length +=diff;
 // 	}
-
-// 	return (*chiselka);
 // }
 
 char* summa(long_number* first, long_number* second, char operation){
@@ -401,26 +408,34 @@ int compare(long_number* tempone, long_number* temptwo){
 }
 
 long_number* mult_long_short(long_number* temptwo, int small){
-	int i;
+
 	long_number* result = calloc(1,sizeof(long_number));
 	result->number = calloc(temptwo->length+2,sizeof(int));
 	result->length = temptwo->length+2;
-	for (i = temptwo->length; i >= 0; i--)
-		result->number[i+1] = temptwo->number[i]*small; // metka
-	for(i = result->length; i > 0; i--){
+
+	int i;
+	for (i = temptwo->length; i > 0; i--)
+		result->number[i] = temptwo->number[i-1]*small; 
+
+	for(i = temptwo->length; i > 0; i--){
+
 		if(result->number[i] > 9){
-			result->number[i-1] += result->number[i]/10;
+			result->number[i-1] += (result->number[i])/10;
 			result->number[i] %= 10;
 		}
 	}
 
 	if(result->number[0] == 0){
-		for(i = 0; i < result->length; i++)
+
+		for(i = 0; i < temptwo->length+1; i++)
 			result->number[i] = result->number[i+1];
+
 		result->length -=1;
-	result->number = realloc(result->number,(result->length)*sizeof(int));
+
+		result->number = realloc(result->number,(result->length)*sizeof(int));
 	} 
-	result->comma = result->length - 1;
+
+	result->comma = result->length - 1; // supermetka
 
 	return result;
 }
@@ -430,47 +445,51 @@ long_number* change_cifra(long_number* cut_number, char** result, long_number* t
 	int cifra = 1;
 	long_number* check = mult_long_short(temptwo, cifra);
 
-	// write_str(check);
-
 	while ((compare(check, cut_number) != 2) && (cifra > 0)){ 
 
 		cifra++;
 
 		check = mult_long_short(temptwo, cifra);
 	}
+
 	(*result)[(*i)] = cifra+48;
 	(*i)++;
-	return check;
+
+	return mult_long_short(temptwo, cifra-1);
 }
 
 void delenie(char** result,	int result_after_point, int point_flag, long_number* tempone, long_number* temptwo, int* i){
-	
+
 	long_number* cut_number = calloc(1,sizeof(long_number));
 	cut_number->number = calloc(temptwo->length,sizeof(int));
-	cut_number->length = temptwo->length;
+
+	int j;
+	for (j = 0; j < temptwo->length; j++)
+		cut_number->number[j] = tempone->number[j];
+
+	cut_number->number = realloc(cut_number->number,(temptwo->length+1)*sizeof(int));
+	cut_number->length = temptwo->length+1;
 
 	long_number* multik = calloc(1,sizeof(long_number));
-	multik->number = calloc(temptwo->length,sizeof(int));
+	multik->number = calloc(temptwo->length+1,sizeof(int));
 	multik->length = temptwo->length;
 
-	cut_number->number = realloc(tempone->number,(temptwo->length+2)*sizeof(int));   	
+	cut_number->number[temptwo->length] = 0; 
+	multik->number[multik->length] = 0; 
 
-	cut_number->number[cut_number->length] = 0; 
-	cut_number->number[cut_number->length+1] = 0; 
+	multik->length++;
+	cut_number->comma = cut_number->length - 1; // supermetka
 
-	cut_number->length++; 
-	cut_number->comma = cut_number->length - 1;
+	write_str(cut_number);
+	write_str(change_cifra(cut_number,result,temptwo,i));
 
-	// while(result_after_point != ACCURACY){
-	// printf("%s\n",summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-')); 
+	printf("%s\n", summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-'));
 
+	// reader(summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-'),cut_number);
 
+	printf("%s\n", cut_number);
 
-		reader(summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-'),cut_number);
-
-
-
-	// }
+	
 }
 
 char* division(long_number* tempone,long_number* temptwo, int accuracy){
@@ -544,12 +563,13 @@ char* division(long_number* tempone,long_number* temptwo, int accuracy){
 
 		tempone->number[tempone->length] = 0;
 		tempone->length++;
-	}
+	}//обрабатывает случаи, когда надо дописать нолики для уравнивания длинны и дописывает нолики в ответ и первое число
 
 	delenie(&result,result_after_point,point_flag,tempone,temptwo,&i);
 
 	return "123123";
 }
+
 char* lib(char* firstlongnumber, char* secondlongnumber, char operation, int accuracy){
 
 	int t1 = proverka(firstlongnumber); 
