@@ -1,600 +1,399 @@
-#include "library2.h"
+#include "LongNumber.h"
 
-int proverka(char* stroka){
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
-	if (((stroka[0] < '0') || (stroka[0] > '9')) && (stroka[0] != '-'))
-		return -1;
+LongNumber strip(LongNumber number)
+{
+	int preceding = 0;
+	int following = 0;
 
-	if ((stroka[0] == '0') && (stroka[1] != ','))
-		return -1;
-	
-	if (((stroka[0] == '-') || (stroka[0] == '+')) && (stroka[1] == ','))
-		return -1;
-	
-	if (((stroka[0] == '-') || (stroka[0] == '+')) && (stroka[1] == '0') && (stroka[2] != ','))
-		return -1;
-
-	int i; int k = 0;
-	for (i = 1; i < strlen(stroka); i++)
+	int i;
+	for (i = number.integer_size - 1; i >= 0 && 0 == number.integer[i]; i--)
 	{
-		if (((stroka[i] < '0') || (stroka[i] > '9')) && (stroka[i] != ','))
-			return -1;	
-		
-		if (stroka[i] == ',')
-			k++;
-
-		if (k > 1)
-			return -1;	
+		preceding++;
 	}
 
-	return 0;//+++
-}
-
-void write_str(long_number* prnum){
-
-	int d;
-	for (d = 0; d < prnum->length; d++)
-		printf("%d\n", prnum->number[d]);
-}
-
-void reader(char* tempstroka, long_number* structure){//+++
-
-	int h = 0;
-	if (tempstroka[0] == '-'){
-		h = 1;
-		structure->znak = '-';
-	}	
-	else structure->znak = '+';
-
-	int i = 1;
-	while (tempstroka[i] != ',') i++;
-	structure->comma = i-h;
-
-	structure->number = calloc(strlen(tempstroka)-1-h,sizeof(int));
-
-	int j;
-	for (j = 0; j < structure->comma; j++)
-		structure->number[j] = tempstroka[j+h] - 48;
-
-	for (j = structure->comma; j < strlen(tempstroka)-1-h; j++)
-		structure->number[j] = tempstroka[j+1+h] - 48;
-
-	structure->length = strlen(tempstroka)-1-h;
-}
-
-int maxdiff(int a, int b){
-
-	if (a >= b)
-		return 1;
-	else return 0;
-}
-
-void alignment(long_number* first, long_number* second){//+++
-
-	int max = maxdiff(first->comma,second->comma);
-
-	if (max == 1)
+	for (i = number.fractional_size - 1; i >= 0 && 0 == number.fractional[i]; i--)
 	{
-		int diff = first->comma - second->comma;
-		second->comma = first->comma;
-		second->number = realloc(second->number,(second->length + diff)*sizeof(int));
+		following++;
+	}
+
+	if (preceding > 0)
+	{
+		number.integer_size -= preceding;
+		number.integer = realloc(number.integer, number.integer_size);
+	}
+
+	if (following > 0)
+	{
+		number.fractional_size -= following;
+		number.fractional = realloc(number.fractional, number.fractional_size);
+	}
+
+	if (0 == number.fractional_size && 0 == number.integer_size)
+	{
+		number.sign = 1;
+	}
+
+	return number;
+}
+
+int abs_compare(LongNumber a, LongNumber b)
+{
+	if (a.integer_size == b.integer_size)
+	{
 		int i;
+		for (i = a.integer_size - 1; i >= 0; i--)
+		{
+			int diff = a.integer[i] - b.integer[i];
 
-		for (i = second->length-1; i >= 0; i--)
-			second->number[i+diff] = second->number[i];
-
-		second->length += diff;
-
-		for (i = 0; i < diff; i++)
-			second->number[i] = 0;
-	}
-	else {
-		int diff = second->comma - first->comma;
-		first->comma = second->comma;
-		first->number = realloc(first->number,(first->length + diff)*sizeof(int));
-		int i;
-
-		for (i = first->length-1; i >= 0; i--)
-			first->number[i+diff] = first->number[i];
-
-		first->length += diff;
-
-		for (i = 0; i < diff; i++)
-			first->number[i] = 0;
-	}
-
-	int diff = first->length - second->length;
-
-	if (diff > 0)
-	{
-		second->number = realloc(second->number,sizeof(int)*(second->length + diff));
-		second->length += diff;
-		int i;		
-		for (i = second->length - diff; i < second->length; i++)
-			second->number[i] = 0;
-	}
-	else if (diff < 0)
-	{
-		first->length -= diff;
-		first->number = realloc(first->number,sizeof(int)*(first->length - diff));
-		int i;
-		for (i = first->length + diff; i < first->length; i++)
-			first->number[i] = 0;
-	}
-}
-
-void cleaner(long_number* result,int i){//+++
-
-	if (result->number[i] < 0)
-	{
-		result->number[i] += 10; 
-		result->number[i-1] -= 1;
-	}
-
-	else if (result->number[i] > 9)
-	{
-		result->number[i] %= 10;
-		result->number[i-1]++;
-	}
-}
-
-char* int_to_string(long_number* result){
-
-	int znachek = 0;
-	if(result->znak == '-')
-		znachek = 1;
-
-	if ((result->number[0] == 0) && (result->number[1] == 0) && (result->comma = 2))
-	{
-		char* strochka = calloc((result->length + znachek),sizeof(char));
-
-		int i = 0;
-		if(znachek){
-			strochka[i] = '-';
-			i++;
-		}
-
-		strochka[i] = '0';
-		i++;
-		strochka[i] = ',';
-		i++;
-
-		int j = 2;
-		while(j != result->length){
-
-			strochka[i] = result->number[j] + 48;
-			i++;
-			j++;
-		}	
-
-		return strochka;
-	}
-
-	else if ((result->number[0] == 0) && (result->number[1] != 0))
-	{
-			char* strochka = calloc((result->length + znachek),sizeof(char));
-
-			int i = 0;
-			if(znachek){
-				strochka[i] = '-';
-				i++;
+			if (0 != diff)
+			{
+				return diff;
 			}
+		}
 
-			int j;
-			for(j = 1; j < result->comma; j++){
+		int delim = min(a.fractional_size, b.fractional_size);
 
-				strochka[i] = result->number[j]+48;
-				i++;
+		for (i = 0; i < delim; i++)
+		{
+			int diff = a.fractional[i] - b.fractional[i];
+
+			if (0 != diff)
+			{
+				return diff;
 			}
+		}
 
-			strochka[i] = ',';
-			i++;
-
-			while(j != result->length){
-
-				strochka[i] = result->number[j] + 48;
-				i++;
-				j++;
-			}	
-
-			return strochka;
+		return a.fractional_size - b.fractional_size;
 	}
 
-	else if (result->number[0] != 0)
+	return a.integer_size - b.integer_size;
+}
+
+int compare(LongNumber a, LongNumber b)
+{
+	if (a.sign != b.sign)
 	{
-		char* strochka = calloc((result->length+znachek+1),sizeof(char));
-		
-		int i = 0;
-		if(znachek){
-			strochka[i] = '-';
-			i++;
-		}
-
-		int j;
-		for(j = 0; j < result->comma; j++){
-
-			strochka[i] = result->number[j]+48;
-		
-			i++;
-		}
-
-		strochka[i] = ',';
-		i++;
-
-		while(j != result->length){
-
-			strochka[i] = result->number[j] + 48;
-							
-			i++;
-			j++;
-		}	
-		return strochka;
-	}
-}	
-
-// void clean_nuls(long_number** chiselka){
-// 	int i = (*chiselka)->length;
-// 	while((i > ((*chiselka)->comma))&&((*chiselka)->number[i-1] == 0))
-// 		i--;
-
-// 	(*chiselka)->length = i;
-// 	(*chiselka)->number = realloc((*chiselka)->number,(*chiselka)->length*sizeof(int));
-// }
-
-// void rounding(long_number** chiselka, int after_point){
-	
-// 	int after = (*chiselka)->length - (*chiselka)->comma;
-// 	int diff = after_point - after;
-
-// 	if(diff > 0){//если занков после запятой меньше чем надо
-// 		(*chiselka)->number = realloc((*chiselka)->number,((*chiselka)->length+diff)*sizeof(int));
-// 		int i;
-// 		for(i = (*chiselka)->length; i < (*chiselka)->length + diff; i++)
-// 			(*chiselka)->number[i] = 0;
-// 		(*chiselka)->length += diff;
-// 	}
-
-// 	else if(diff < 0){//после запятой больше чем надо
-// 		if((*chiselka)->number[(*chiselka)->comma + after_point] >= 4)
-// 			(*chiselka)->number[(*chiselka)->comma + after_point-1]++;
-// 		(*chiselka)->number = realloc((*chiselka)->number,((*chiselka)->length+diff)*sizeof(int));
-// 		(*chiselka)->length +=diff;
-// 	}
-// }
-
-char* summa(long_number* first, long_number* second, char operation){
-
-	alignment(first, second);
-
-	long_number* result = calloc(1,sizeof(long_number));
-
-	result->number = calloc(first->length+1,sizeof(int));  
-	result->length = first->length+1;
-
-	int joys = 1;
-	if (second->znak == '-')
-		joys = -1;
-
-	int joyf = 1;
-	if (first->znak == '-')
-		joyf = -1;
-
-	if (operation == '-')
-		joys *= -1;
-
-	int i;
-	for (i = first->length-1; i >= 0; i--)
-		result->number[i+1] = joyf*first->number[i] + joys*second->number[i];
-	
-	for (i = result->length-1; i > 0 ; i--)
-		cleaner(result,i);
-
-	int k = 0;
-	while(result->number[k] == 0)
-		k++;
-
-	if (k != result->length+1){	
-		if(result->number[k] < 0){
-		if(result->znak == '-')
-			result->znak = '+';
-		else result->znak = '-';
-
-		while(k != result->length){ 
-			result->number[k] *= -1;
-			k++;
-		}
-	}
-}
-
-	for (i = result->length-1; i > 0 ; i--)
-		cleaner(result,i);
-
-
-	result->comma = first->comma + 1;
-
-	return int_to_string(result);
-}
-
-void numeral_multi(long_number* first,long_number* second, long_number* result, int i, int h){
-
-	int j; int p;
-	for (j = first->length; j > 0; j--)
-	{
-		p = first->number[j-1] * second->number[i];
-
-		result->number[j+i] += p;
-	}
-}
-
-void cleaner_multi(long_number* result, int i){
-
-	if (result->number[i] >= 10)
-	{
-		result->number[i-1] += result->number[i] / 10;
-		result->number[i] %= 10;
-	}
-}
-
-char* multiplication(long_number* tempone,long_number* temptwo, int accuracy){
-
-	int i = 0; 
-	int j = 0; int h = 0;
-
-	long_number* result = calloc(1,sizeof(long_number));
-	result->number = calloc((tempone->length+temptwo->length),sizeof(int));
-	
-	if (tempone->znak == temptwo->znak)
-		result->znak = '+';
-	if (tempone->znak != temptwo->znak)
-		result->znak = '-';
-	
-	for (i = temptwo->length; i > 0; i-- ,h++)
-		numeral_multi(tempone,temptwo, result, i-1,h);
-
-	for (i = tempone->length+temptwo->length-1; i >= 0; i--) 
-		cleaner_multi(result,i);
-
-	result->comma = tempone->comma + temptwo->comma;
-
-	result->length = tempone->length+temptwo->length;
-
-	return int_to_string(result);
-}
-
-void point_move(long_number** tempone, long_number** temptwo){
-	
-	int after_point_one = (*tempone)->length - (*tempone)->comma;
-	int after_point_two = (*temptwo)->length - (*temptwo)->comma;
-
-	int deff = after_point_one - after_point_two;
-
-	if(deff > 0){
-		(*temptwo)->number = realloc((*temptwo)->number,((*temptwo)->length + deff)*sizeof(int));
-		int i = (*temptwo)->length;
-		(*temptwo)->length += deff;
-		while(i != (*temptwo)->length){
-			(*temptwo)->number[i] = 0;
-			i++;
-		}
+		return a.sign * 2 + b.sign;
 	}
 
-	if(deff < 0){
-		(*tempone)->number = realloc((*tempone)->number,((*tempone)->length - deff)*sizeof(int));
-		int i = (*tempone)->length;
-		(*tempone)->length -= deff;
-		while(i != (*tempone)->length){
-			(*tempone)->number[i] = 0;
-			i++;
-		}
-	}
+	return abs_compare(a, b);
 }
 
-int compare(long_number* tempone, long_number* temptwo){
+LongNumber zero()
+{
+	LongNumber result;
 
-	int i;
-	int deff = temptwo->length - tempone->length;
-
-	if(deff == 0){
-		for (i = 0; i < tempone->length; i++)
-			if (tempone->number[i] < temptwo->number[i])
-				return 1;
-
-		return 0;
-	}	
-	else if (deff > 0)
-		return 1;
-	else if(deff < 0)
-		return 2;
-}
-
-long_number* mult_long_short(long_number* temptwo, int small){
-
-	long_number* result = calloc(1,sizeof(long_number));
-	result->number = calloc(temptwo->length+2,sizeof(int));
-	result->length = temptwo->length+2;
-
-	int i;
-	for (i = temptwo->length; i > 0; i--)
-		result->number[i] = temptwo->number[i-1]*small; 
-
-	for(i = temptwo->length; i > 0; i--){
-
-		if(result->number[i] > 9){
-			result->number[i-1] += (result->number[i])/10;
-			result->number[i] %= 10;
-		}
-	}
-
-	if(result->number[0] == 0){
-
-		for(i = 0; i < temptwo->length+1; i++)
-			result->number[i] = result->number[i+1];
-
-		result->length -=1;
-
-		result->number = realloc(result->number,(result->length)*sizeof(int));
-	} 
-
-	result->comma = result->length - 1; // supermetka
+	result.sign = 1;
+	result.fractional_size = 0;
+	result.fractional_length = 0;
+	result.integer_size = 0;
+	result.fractional = NULL;
+	result.integer = NULL;
 
 	return result;
 }
 
-long_number* change_cifra(long_number* cut_number, char** result, long_number* temptwo, int* i){
-
-	int cifra = 1;
-	long_number* check = mult_long_short(temptwo, cifra);
-
-	while ((compare(check, cut_number) != 2) && (cifra > 0)){ 
-
-		cifra++;
-
-		check = mult_long_short(temptwo, cifra);
+LongNumber parse(char *string)
+{
+	if (NULL == string)
+	{
+		//todo:check
 	}
 
-	(*result)[(*i)] = cifra+48;
-	(*i)++;
+	if (0 == strcmp(string, ""))
+	{
+		//todo:check
+	}
 
-	return mult_long_short(temptwo, cifra-1);
-}
+	LongNumber result;
 
-void delenie(char** result,	int result_after_point, int point_flag, long_number* tempone, long_number* temptwo, int* i){
+#define SIGN '-'
 
-	long_number* cut_number = calloc(1,sizeof(long_number));
-	cut_number->number = calloc(temptwo->length,sizeof(int));
+	char *sign = strchr(string, SIGN);
 
-	int j;
-	for (j = 0; j < temptwo->length; j++)
-		cut_number->number[j] = tempone->number[j];
+	if (NULL != sign)
+	{
+		result.sign = NEGATIVE_SIGN;
+		sign++;//here we go to number
+	}
+	else
+	{
+		result.sign = 1;
+		sign = string;
+	}
 
-	cut_number->number = realloc(cut_number->number,(temptwo->length+1)*sizeof(int));
-	cut_number->length = temptwo->length+1;
+	char *point = strpbrk(string, ",.");
 
-	long_number* multik = calloc(1,sizeof(long_number));
-	multik->number = calloc(temptwo->length+1,sizeof(int));
-	multik->length = temptwo->length;
+	int totalLength = strlen(string);
 
-	cut_number->number[temptwo->length] = 0; 
-	multik->number[multik->length] = 0; 
+	int integerLength = point - sign;
+	int fractionalLength = string + totalLength - (point + 1);
 
-	multik->length++;
-	cut_number->comma = cut_number->length - 1; // supermetka
 
-	write_str(cut_number);
-	write_str(change_cifra(cut_number,result,temptwo,i));
+	result.integer_size = integerLength;
+	result.fractional_size = fractionalLength;
 
-	printf("%s\n", summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-'));
+	result.integer = calloc(result.integer_size, sizeof(*result.integer));
+	result.fractional = calloc(result.fractional_size, sizeof(*result.fractional));
 
-	// reader(summa(cut_number,change_cifra(cut_number,result,temptwo,i),'-'),cut_number);
+	char buffer[CHUNK_LENGTH + 1] = { 0 };
 
-	printf("%s\n", cut_number);
+	int base = 10;
 
-	
-}
-
-char* division(long_number* tempone,long_number* temptwo, int accuracy){
-
-	point_move(&tempone, &temptwo); 
-
-	int point_flag = 0;
-	int znak_flag = 0;
-	int noliki = temptwo->length - tempone->length;
-
-	if(noliki > accuracy+1)
-		noliki = accuracy+1;
-	
-	char* result = calloc(MAX(tempone->length,temptwo->length) + accuracy,sizeof(char));
+	result.integer[result.integer_size - 1] = strtol(buffer, NULL, base);
 
 	int i;
-	for(i = 0; i < (MAX(tempone->length,temptwo->length) + accuracy); i++)
-		result[i] = '#';
+	for (i = result.integer_size - 1; i >= 0; i--)
+	{
+		char *current_token = sign + result.integer_size - 1 - i;
 
-	i = 0;
-	if(tempone->znak != temptwo->znak){
-		result[i] = '-';
-		znak_flag++;
-		i++;
+		strncpy(buffer, current_token, CHUNK_LENGTH);
+
+		result.integer[i] = strtol(buffer, NULL, base);
 	}
 
-	if(noliki > 0){
-		result[i] = '0';
-		i++;
-		result[i] = ',';
-		i++;
-		point_flag = 1;
-		noliki--;
-		int j = 0;
-		while (j < noliki){
-			result[i] = '0';
-			j++;
-			i++;
-		} 
+	for (i = 0; i < result.fractional_size; i++)
+	{
+		int chunkOffset = i;
 
-		if(j == accuracy+1){
-			// char* resultik = calloc(j+point_flag+znak_flag+1,sizeof(char));
-			// int m;
-			// for(m = 0; m < j+point_flag+znak_flag+1; m++)
-			// 	resultik[m] = result[m];
+		char *current_token = point + 1 + chunkOffset;
 
-			return realloc(result,(j+point_flag+znak_flag+1)*sizeof(char));
-		}
+		strncpy(buffer, current_token, CHUNK_LENGTH);
 
-		tempone->number = realloc(tempone->number,(tempone->length + noliki)*sizeof(int));
+		result.fractional[i] = strtol(buffer, NULL, base);
+	}
 
-		int k;
-		for(k = tempone->length; k < noliki + tempone->length; k++)
-			tempone->number[k] = 0;
-
-		tempone->length += noliki;
-	} 
-
-	int result_after_point = 0;
-
-	if (noliki < 0)
-		result_after_point = -1 * noliki;
-	else result_after_point = noliki;
-
-	int p = compare(tempone, temptwo);
-
-	if(p == 1){
-		result[i] = '0';
-		result_after_point++;
-		tempone->number = realloc(tempone->number,(tempone->length + 1)*sizeof(int));
-
-		tempone->number[tempone->length] = 0;
-		tempone->length++;
-	}//обрабатывает случаи, когда надо дописать нолики для уравнивания длинны и дописывает нолики в ответ и первое число
-
-	delenie(&result,result_after_point,point_flag,tempone,temptwo,&i);
-
-	return "123123";
+	return strip(result);
 }
 
-char* lib(char* firstlongnumber, char* secondlongnumber, char operation, int accuracy){
+void print(LongNumber number)
+{
+	if (NEGATIVE_SIGN == number.sign)
+	{
+		printf("-");
+	}
 
-	int t1 = proverka(firstlongnumber); 
-	if (t1 == -1) 
-		return "error";
-	int t2 = proverka(secondlongnumber); 
-	if (t2 == -1) 
-		return "error";
-	if ((operation != '*') && (operation != '+') && (operation != '-') && (operation != '/'))
-		return "error";
+	int i;
+	for (i = number.integer_size - 1; i >= 0; i--)
+	{
+		printf("%d", number.integer[i]);
+	}
 
-	long_number* tempone = calloc(1,sizeof(long_number));
-	long_number* temptwo = calloc(1,sizeof(long_number));
+	if (0 == number.integer_size)
+	{
+		printf("0");
+	}
 
-	reader(firstlongnumber,tempone);  
-	reader(secondlongnumber,temptwo); 
+	if (number.fractional_size > 0)
+	{
+		printf(".");
+	}
 
-	if (operation == '*')
-		return multiplication(tempone,temptwo,accuracy);
+	for (i = 0; i < number.fractional_size; i++)
+	{
+		printf("%d", number.fractional[i]);
+	}
 
-	if ((operation == '+') || (operation == '-')){
-		char* result = summa(tempone,temptwo,operation);
+	printf("\n");
+}
+
+LongNumber sum(LongNumber a, LongNumber b)
+{
+	LongNumber result = zero();
+
+	if (a.sign != b.sign)
+	{
+		if (NEGATIVE_SIGN == b.sign)
+		{
+			b.sign *= -1;
+
+			return sub(a, b);
+		}
+		else
+		{
+			a.sign *= -1;
+
+			return sub(b, a);
+		}
+	}
+	
+	result.sign = a.sign;
+
+	result.integer_size = max(a.integer_size, b.integer_size);
+	result.fractional_size = max(a.fractional_size, b.fractional_size);
+
+	result.integer = calloc(result.integer_size, sizeof(*result.integer));
+	result.fractional = calloc(result.fractional_size, sizeof(*result.fractional));
+
+	int i;
+	for (i = 0; i < result.integer_size; i++)
+	{
+		if (i < a.integer_size)
+		{
+			result.integer[i] += a.integer[i];
+		}
+
+		if (i < b.integer_size)
+		{
+			result.integer[i] += b.integer[i];
+		}
+	}
+
+	for (i = 0; i < result.fractional_size; i++)
+	{
+		if (i < a.fractional_size)
+		{
+			result.fractional[i] += a.fractional[i];
+		}
+
+		if (i < b.fractional_size)
+		{
+			result.fractional[i] += b.fractional[i];
+		}
+	}
+
+	for (i = result.fractional_size - 2; i >= 0; i--)
+	{
+		result.fractional[i] += result.fractional[i + 1] / CHUNK_SIZE;
+		result.fractional[i + 1] %= CHUNK_SIZE;
+	}
+	
+	if (result.fractional_size > 0 && result.fractional[0] > CHUNK_SIZE)
+	{
+		if (0 == result.integer_size)
+		{
+			result.integer_size++;
+			result.integer = realloc(result.integer, result.integer_size);
+		}
+		result.integer[0] += result.fractional[0] / CHUNK_SIZE;
+		result.fractional[0] %= CHUNK_SIZE;
+	}
+	//0.6+0.6
+
+	for (i = 1; i < result.integer_size; i++)
+	{
+		result.integer[i] += result.integer[i - 1] / CHUNK_SIZE;
+		result.integer[i - 1] %= CHUNK_SIZE;
+	}
+
+	if (result.integer[result.integer_size - 1] > CHUNK_SIZE)
+	{
+		result.integer_size++;
+
+		result.integer = realloc(result.integer, result.integer_size);
+
+		result.integer[result.integer_size - 1] = result.integer[result.integer_size - 2] / CHUNK_SIZE;
+		result.integer[result.integer_size - 2] %= CHUNK_SIZE;
+	}
+
+	return result;
+}
+
+LongNumber sub(LongNumber a, LongNumber b)
+{
+	if (POSITIVE_SIGN == a.sign && NEGATIVE_SIGN == b.sign)
+	{
+		b.sign *= -1;
+
+		return sum(a, b);
+	}
+
+	if (NEGATIVE_SIGN == a.sign && POSITIVE_SIGN == b.sign)
+	{
+		a.sign *= -1;
+		
+		LongNumber result = sum(a, b);
+
+		result.sign *= -1;
+
 		return result;
+	}
+
+	if (NEGATIVE_SIGN == a.sign && NEGATIVE_SIGN == b.sign)
+	{
+		a.sign *= -1;
+		b.sign *= -1;
+
+		return sub(b, a);
+	}
+	
+	LongNumber bigger;
+	LongNumber smaller;
+	LongNumber result;
+
+	if (abs_compare(a, b) > 0)
+	{
+		bigger = a;
+		smaller = b;
+		result.sign = POSITIVE_SIGN;
+	}
+	else
+	{
+		bigger = b;
+		smaller = a;
+		result.sign = NEGATIVE_SIGN;
 	}	
 
-	if (operation == '/')
-		return division(tempone,temptwo,accuracy);
+	result.integer_size = max(a.integer_size, b.integer_size);
+	result.fractional_size = max(a.fractional_size, b.fractional_size);
+
+	result.integer = calloc(result.integer_size, sizeof(*result.integer));
+	result.fractional = calloc(result.fractional_size, sizeof(*result.fractional));
+	
+	int i;
+	for (i = 0; i < result.integer_size; i++)
+	{
+		if (i < bigger.integer_size)
+		{
+			result.integer[i] += bigger.integer[i];
+		}
+
+		if (i < smaller.integer_size)
+		{
+			result.integer[i] -= smaller.integer[i];
+		}
+	}
+
+	for (i = 0; i < result.fractional_size; i++)
+	{
+		if (i < bigger.fractional_size)
+		{
+			result.fractional[i] += bigger.fractional[i];
+		}
+	
+		if (i < smaller.fractional_size)
+		{
+			result.fractional[i] -= smaller.fractional[i];
+		}
+	}
+
+	for (i = result.fractional_size - 1; i >= 1; i--)
+	{
+		if (result.fractional[i] < 0)
+		{
+			result.fractional[i - 1]--;
+			result.fractional[i] += CHUNK_SIZE;
+		}
+	}
+
+	if (result.fractional_size > 0 && result.fractional[0] < 0)
+	{
+		result.integer[0]--;
+		result.fractional[0] += CHUNK_SIZE;
+	}
+
+	for (i = 0; i < result.integer_size - 1; i++)
+	{
+		if (result.integer[i + 1] < 0)
+		{
+			result.integer[i + 1]--;
+			result.integer[i] += CHUNK_SIZE;
+		}
+	}
+
+	return strip(result);
 }
