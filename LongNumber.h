@@ -29,4 +29,4 @@ LongNumber sub(LongNumber a, LongNumber b);
 LongNumber mul(LongNumber a, LongNumber b);
 LongNumber divide(LongNumber a, LongNumber b, int precision);
 
-#endif
+#endif //LONG_ARITHMETICS
