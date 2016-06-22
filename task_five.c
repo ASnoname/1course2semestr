@@ -89,7 +89,6 @@ LongNumber zero()
 
 	result.sign = 1;
 	result.fractional_size = 0;
-	result.fractional_length = 0;
 	result.integer_size = 0;
 	result.fractional = NULL;
 	result.integer = NULL;
@@ -99,16 +98,6 @@ LongNumber zero()
 
 LongNumber parse(char *string)
 {
-	if (NULL == string)
-	{
-		//todo:check
-	}
-
-	if (0 == strcmp(string, ""))
-	{
-		//todo:check
-	}
-
 	LongNumber result;
 
 #define SIGN '-'
@@ -118,7 +107,7 @@ LongNumber parse(char *string)
 	if (NULL != sign)
 	{
 		result.sign = NEGATIVE_SIGN;
-		sign++;//here we go to number
+		sign++;
 	}
 	else
 	{
@@ -272,7 +261,6 @@ LongNumber sum(LongNumber a, LongNumber b)
 		result.integer[0] += result.fractional[0] / CHUNK_SIZE;
 		result.fractional[0] %= CHUNK_SIZE;
 	}
-	//0.6+0.6
 
 	for (i = 1; i < result.integer_size; i++)
 	{
@@ -323,7 +311,7 @@ LongNumber sub(LongNumber a, LongNumber b)
 	
 	LongNumber bigger;
 	LongNumber smaller;
-	LongNumber result;
+	LongNumber result = zero();
 
 	if (abs_compare(a, b) > 0)
 	{
@@ -394,6 +382,176 @@ LongNumber sub(LongNumber a, LongNumber b)
 			result.integer[i] += CHUNK_SIZE;
 		}
 	}
+
+	return strip(result);
+}
+
+LongNumber mul(LongNumber a, LongNumber b)
+{
+	LongNumber result = zero();
+
+	result.sign = a.sign * b.sign;
+
+	result.integer_size = a.integer_size + b.integer_size;
+	result.fractional_size = a.fractional_size + b.fractional_size;
+
+	result.integer = calloc(result.integer_size, sizeof(*result.integer));
+	result.fractional = calloc(result.fractional_size, sizeof(*result.fractional));
+
+	char *rawA = calloc(a.integer_size + a.fractional_size, sizeof(*a.integer));
+	char *rawB = calloc(b.integer_size + b.fractional_size, sizeof(*b.integer));
+
+	char *rawResult = calloc(result.integer_size + result.fractional_size, sizeof(*result.integer));
+
+	memcpy(rawA + a.fractional_size, a.integer, a.integer_size * sizeof(*a.integer));
+	
+	int i;
+	for (i = 0; i < a.fractional_size; i++)
+	{
+		rawA[a.fractional_size - 1 - i] = a.fractional[i];
+	}
+
+	memcpy(rawB + b.fractional_size, b.integer, b.integer_size * sizeof(*b.integer));
+
+	for (i = 0; i < b.fractional_size; i++)
+	{
+		rawB[b.fractional_size - 1 - i] = b.fractional[i];
+	}
+
+	int j;
+	for (j = 0; j < a.integer_size + a.fractional_size; j++)
+	{
+		int carry = 0;
+
+		for (i = 0; i < b.integer_size + b.fractional_size; i++)
+		{
+			int t = rawA[j] * rawB[i] + rawResult[i + j] + carry;
+
+			rawResult[i + j] = t % CHUNK_SIZE;
+			carry = t / CHUNK_SIZE;
+		}
+	}
+
+	for (i = 0; i < result.fractional_size; i++)
+	{
+		result.fractional[result.fractional_size - 1 - i] = rawResult[i];
+	}
+
+	memcpy(result.integer, rawResult + result.fractional_size, result.integer_size * sizeof(*result.integer));
+
+	return strip(result);
+}
+
+LongNumber divide(LongNumber a, LongNumber b, int precision)
+{
+	int m = a.integer_size + a.fractional_size;
+	int n = b.integer_size + b.fractional_size;
+
+	int precisionOffset = max(precision - (a.fractional_size - b.fractional_size), 0);
+
+	m += precisionOffset;
+	
+	char *u = calloc(m, sizeof(*a.integer));
+	char *v = calloc(n + 1, sizeof(*b.integer));
+
+	char *rawResult = calloc(m - n + 1, sizeof(*a.integer));
+
+	memcpy(u + a.fractional_size, a.integer, a.integer_size * sizeof(*a.integer));
+
+	int i;
+	for (i = 0; i < a.fractional_size; i++)
+	{
+		u[a.fractional_size - 1 - i] = a.fractional[i];
+	}
+
+	for (i = m - 1; i >= precisionOffset; i--)
+	{
+		u[i] = u[i - precisionOffset];
+	}
+
+	for (i = 0; i < precisionOffset; i++)
+	{
+		u[i] = 0;
+	}
+
+	memcpy(v + b.fractional_size, b.integer, b.integer_size * sizeof(*b.integer));
+
+	for (i = 0; i < b.fractional_size; i++)
+	{
+		v[b.fractional_size - 1 - i] = b.fractional[i];
+	}	
+
+	char *buffer = calloc(n + 1, sizeof(*b.integer));
+
+	for (i = 0; i < n - 1; i++)
+	{
+		buffer[n - 2 - i] = u[m - 1 - i];
+	}
+
+	int j;
+	for (j = m - n; j >= 0; j--)
+	{
+		for (i = n; i >= 1; i--)
+		{
+			buffer[i] = buffer[i - 1];
+		}
+
+		buffer[0] = u[j];
+
+		int enough = 0;
+
+		while (!enough)
+		{
+			for (i = n; i >= 0; i--)
+			{
+				if (buffer[i] < v[i])
+				{
+					enough = 1;
+					break;
+				}
+
+				if (buffer[i] > v[i])
+				{
+					break;
+				}
+			}
+
+			if (enough)
+			{
+				break;
+			}
+
+			for (i = 0; i < n; i++)
+			{
+				buffer[i] -= v[i];
+
+				if (buffer[i] < 0)
+				{
+					buffer[i + 1]--;
+					buffer[i] += CHUNK_SIZE;
+				}
+			}
+
+			rawResult[j]++;	
+		}
+	}
+
+	LongNumber result = zero();
+
+	result.sign = a.sign * b.sign;
+
+	result.fractional_size = a.fractional_size - b.fractional_size + precisionOffset;
+	result.integer_size = m - n - result.fractional_size + 1;
+
+	result.integer = calloc(result.integer_size, sizeof(*result.integer));
+	result.fractional = calloc(result.fractional_size, sizeof(*result.fractional));
+
+	for (i = 0; i < result.fractional_size; i++)
+	{
+		result.fractional[result.fractional_size - 1 - i] = rawResult[i];
+	}
+
+	memcpy(result.integer, rawResult + result.fractional_size, result.integer_size * sizeof(*result.integer));
 
 	return strip(result);
 }
