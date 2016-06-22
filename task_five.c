@@ -4,6 +4,47 @@
 #include <string.h>
 #include <stdio.h>
 
+int check(char *string)
+{
+    int len = strlen(string);
+ 
+    if (0 == len)
+    {
+        return len;
+    }
+ 
+    int index = 0;
+ 
+    if ('-' == string[0])
+    {
+        index++;
+    }
+ 
+    for (; index < len; index++)
+    {
+        if ('.' == string[index])
+        {
+            index++;
+            break;
+        }
+ 
+        if (!isdigit(string[index]))
+        {
+            return 0;
+        }
+    }
+ 
+    for (; index < len; index++)
+    {
+        if (!isdigit(string[index]))
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 LongNumber strip(LongNumber number)
 {
 	int preceding = 0;
@@ -100,7 +141,7 @@ LongNumber parse(char *string)
 {
 	LongNumber result;
 
-#define SIGN '-'
+	#define SIGN '-'
 
 	char *sign = strchr(string, SIGN);
 
@@ -121,7 +162,6 @@ LongNumber parse(char *string)
 
 	int integerLength = point - sign;
 	int fractionalLength = string + totalLength - (point + 1);
-
 
 	result.integer_size = integerLength;
 	result.fractional_size = fractionalLength;
@@ -184,7 +224,7 @@ void print(LongNumber number)
 
 	for (i = 0; i < number.fractional_size; i++)
 	{
-		printf("%d", number.fractional[i]);
+		printf("%d", number.fractional[i]); 
 	}
 
 	printf("\n");
@@ -251,7 +291,7 @@ LongNumber sum(LongNumber a, LongNumber b)
 		result.fractional[i + 1] %= CHUNK_SIZE;
 	}
 	
-	if (result.fractional_size > 0 && result.fractional[0] > CHUNK_SIZE)
+	if (result.fractional_size > 0 && result.fractional[0] >= CHUNK_SIZE)
 	{
 		if (0 == result.integer_size)
 		{
@@ -376,7 +416,7 @@ LongNumber sub(LongNumber a, LongNumber b)
 
 	for (i = 0; i < result.integer_size - 1; i++)
 	{
-		if (result.integer[i + 1] < 0)
+		if (result.integer[i] < 0)
 		{
 			result.integer[i + 1]--;
 			result.integer[i] += CHUNK_SIZE;
@@ -386,7 +426,7 @@ LongNumber sub(LongNumber a, LongNumber b)
 	return strip(result);
 }
 
-LongNumber mul(LongNumber a, LongNumber b)
+LongNumber mul(LongNumber a, LongNumber b, int precision)
 {
 	LongNumber result = zero();
 
@@ -439,13 +479,37 @@ LongNumber mul(LongNumber a, LongNumber b)
 
 	memcpy(result.integer, rawResult + result.fractional_size, result.integer_size * sizeof(*result.integer));
 
+	if (result.fractional_size > precision)
+	{
+	  result.fractional_size = precision;
+
+	  if (result.fractional[result.fractional_size] >= 5)
+
+		{
+
+	    result.fractional[result.fractional_size - 1]++;
+	    
+		}
+
+		result.fractional = realloc(result.fractional, result.fractional_size);
+	}
+
 	return strip(result);
 }
 
 LongNumber divide(LongNumber a, LongNumber b, int precision)
 {
+
+	if (b.integer_size > a.integer_size + precision)
+		return zero();
+
 	int m = a.integer_size + a.fractional_size;
 	int n = b.integer_size + b.fractional_size;
+
+	if (0 == b.fractional_size && 0 == b.integer_size){
+		fprintf(stderr, "error");
+		return zero();
+	}	
 
 	int precisionOffset = max(precision - (a.fractional_size - b.fractional_size), 0);
 
@@ -541,7 +605,7 @@ LongNumber divide(LongNumber a, LongNumber b, int precision)
 	result.sign = a.sign * b.sign;
 
 	result.fractional_size = a.fractional_size - b.fractional_size + precisionOffset;
-	result.integer_size = m - n - result.fractional_size + 1;
+	result.integer_size = max(m - n - result.fractional_size + 1,0);
 
 	result.integer = calloc(result.integer_size, sizeof(*result.integer));
 	result.fractional = calloc(result.fractional_size, sizeof(*result.fractional));
@@ -552,6 +616,21 @@ LongNumber divide(LongNumber a, LongNumber b, int precision)
 	}
 
 	memcpy(result.integer, rawResult + result.fractional_size, result.integer_size * sizeof(*result.integer));
+
+	if (result.fractional_size > precision)
+ 	{
+
+ 		result.fractional_size = precision;
+
+  		if (result.fractional[result.fractional_size] >= 5)
+   		{
+
+   		result.fractional[result.fractional_size - 1]++;
+
+   		}
+
+    	result.fractional = realloc(result.fractional, result.fractional_size);
+ 	}
 
 	return strip(result);
 }
