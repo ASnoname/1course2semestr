@@ -6,6 +6,7 @@
 
 #define POSITIVE_SIGN (1)
 #define NEGATIVE_SIGN (-1)
+
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
@@ -16,7 +17,6 @@ typedef struct _long_number
 	int integer_size;
 	char *fractional;
 	int fractional_size;
-	int fractional_length;
 } LongNumber;
 
 LongNumber parse(char *string);
@@ -26,5 +26,7 @@ int compare(LongNumber a, LongNumber b);
 
 LongNumber sum(LongNumber a, LongNumber b);
 LongNumber sub(LongNumber a, LongNumber b);
+LongNumber mul(LongNumber a, LongNumber b);
+LongNumber divide(LongNumber a, LongNumber b, int precision);
 
-#endif //LONG_ARITHMETICS
+#endif
