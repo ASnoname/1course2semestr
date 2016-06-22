@@ -26,7 +26,7 @@ int compare(LongNumber a, LongNumber b);
 
 LongNumber sum(LongNumber a, LongNumber b);
 LongNumber sub(LongNumber a, LongNumber b);
-LongNumber mul(LongNumber a, LongNumber b);
+LongNumber mul(LongNumber a, LongNumber b, int precision);
 LongNumber divide(LongNumber a, LongNumber b, int precision);
 
 #endif //LONG_ARITHMETICS
