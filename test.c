@@ -1,16 +1,17 @@
 #include "LongNumber.h"
 
-int main(int argc, char *argv[])
+int main(void)
 {
 	LongNumber a = parse("13.120");
-	LongNumber b = parse("ю.");
-
-	print(a);
-	print(b);
+	LongNumber b = parse("12.255");
 
 	print(sum(a, b));
 
 	print(sub(a, b));
+	
+	print(mul(a, b));
+	
+	print(divide(a, b, 5));
 
 	return 0;
 }
