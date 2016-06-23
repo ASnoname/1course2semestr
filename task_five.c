@@ -472,10 +472,15 @@ LongNumber mul(LongNumber a, LongNumber b, int precision)
 		}
 	}
 
+	free(rawA);
+	free(rawB);
+
 	for (i = 0; i < result.fractional_size; i++)
 	{
 		result.fractional[result.fractional_size - 1 - i] = rawResult[i];
 	}
+
+	free(rawResult);
 
 	memcpy(result.integer, rawResult + result.fractional_size, result.integer_size * sizeof(*result.integer));
 
@@ -600,6 +605,10 @@ LongNumber divide(LongNumber a, LongNumber b, int precision)
 		}
 	}
 
+	free(buffer);
+	free(v);
+	free(u);
+
 	LongNumber result = zero();
 
 	result.sign = a.sign * b.sign;
@@ -616,6 +625,8 @@ LongNumber divide(LongNumber a, LongNumber b, int precision)
 	}
 
 	memcpy(result.integer, rawResult + result.fractional_size, result.integer_size * sizeof(*result.integer));
+
+	free(rawResult);
 
 	if (result.fractional_size > precision)
  	{
